@@ -1,9 +1,13 @@
 import os
 import logging
 import warnings
+import traceback
+import tempfile
+import base64
+from io import BytesIO
 from flask import Flask, request, render_template_string
+from PIL import Image, ImageDraw, ImageFont
 from dotenv import load_dotenv
-
 # Load environment variables from .env file.
 load_dotenv()
 
@@ -112,3 +116,79 @@ HTML_TEMPLATE = '''
 @app.route("/", methods=["GET"])
 def index():
     return render_template_string(HTML_TEMPLATE, prediction="Frog Identifier", confidence_text="", output_image="")
+
+@app.route("/predict", methods=["POST"])
+def predict():
+    if "file" not in request.files:
+        return "No file part", 400
+    file = request.files["file"]
+    if file.filename == "":
+        return "No selected file", 400
+    try:
+        img_bytes = file.read()
+        img = Image.open(BytesIO(img_bytes)).convert("RGB")
+        logging.info("Image loaded successfully.")
+        
+        with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp:
+            tmp.write(img_bytes)
+            tmp_path = tmp.name
+
+        result = CLIENT.infer(tmp_path, model_id="frog-ukiu5/1")
+        logging.info("Roboflow result: %s", result)
+        
+        os.remove(tmp_path)
+        predictions = result.get("predictions", [])
+        if predictions:
+            best_pred = max(predictions, key=lambda p: p.get("confidence", 0))
+            draw = ImageDraw.Draw(img)
+            try:
+                font = ImageFont.truetype("arial.ttf", size=16)
+            except Exception:
+                font = ImageFont.load_default()
+            
+            x_center = best_pred.get("x")
+            y_center = best_pred.get("y")
+            width = best_pred.get("width")
+            height = best_pred.get("height")
+            left = x_center - width / 2
+            top = y_center - height / 2
+            right = x_center + width / 2
+            bottom = y_center + height / 2
+            draw.rectangle([left, top, right, bottom], outline="red", width=3)
+            label = best_pred.get("class", "N/A")
+            confidence = best_pred.get("confidence", 0)
+            text = f"{label} {confidence*100:.2f}%"
+            bbox = draw.textbbox((0, 0), text, font=font)
+            text_width = bbox[2] - bbox[0]
+            text_height = bbox[3] - bbox[1]
+            draw.rectangle([left, top - text_height, left + text_width, top], fill="red")
+            draw.text((left, top - text_height), text, fill="white", font=font)
+            
+            buffered = BytesIO()
+            img.save(buffered, format="JPEG")
+            output_image = base64.b64encode(buffered.getvalue()).decode("utf-8")
+            
+            if best_pred.get("class", "").lower() == "frog":
+                prediction_label = "Frog Detected"
+                confidence_text = f"Confidence: {confidence*100:.2f}%"
+            else:
+                prediction_label = "No Frog Detected"
+                confidence_text = ""
+            
+            return render_template_string(
+                HTML_TEMPLATE,
+                prediction=prediction_label,
+                confidence_text=confidence_text,
+                output_image=output_image
+            )
+        else:
+            logging.info("No predictions returned from Roboflow API.")
+            return render_template_string(
+                HTML_TEMPLATE,
+                prediction="No predictions available. Please try again.",
+                confidence_text="",
+                output_image=""
+            )
+    except Exception as e:
+        logging.error("Error during prediction: %s", traceback.format_exc())
+        return "Error processing image", 500
