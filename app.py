@@ -8,6 +8,7 @@ from io import BytesIO
 from flask import Flask, request, render_template_string
 from PIL import Image, ImageDraw, ImageFont
 from dotenv import load_dotenv
+
 # Load environment variables from .env file.
 load_dotenv()
 
@@ -28,6 +29,7 @@ CLIENT = InferenceHTTPClient(
 
 app = Flask(__name__)
 
+# Modern, beautiful Bootstrap UI for the home and prediction page.
 HTML_TEMPLATE = '''
 <!DOCTYPE html>
 <html lang="en">
@@ -192,3 +194,70 @@ def predict():
     except Exception as e:
         logging.error("Error during prediction: %s", traceback.format_exc())
         return "Error processing image", 500
+
+@app.route("/metrics", methods=["GET"])
+def metrics():
+    frog_dir = "frog_images/frog/"
+    not_frog_dir = "frog_images/not_frog/"
+    
+    def compute_average_confidence(directory, expected_class="frog"):
+        confidences = []
+        if os.path.exists(directory) and os.path.isdir(directory):
+            for filename in os.listdir(directory):
+                if filename.lower().endswith((".jpg", ".jpeg", ".png")):
+                    img_path = os.path.join(directory, filename)
+                    try:
+                        result = CLIENT.infer(img_path, model_id="frog-ukiu5/1")
+                        preds = result.get("predictions", [])
+                        if preds:
+                            best = max(preds, key=lambda p: p.get("confidence", 0))
+                            conf = best.get("confidence", 0) if best.get("class", "").lower() == expected_class else 0
+                            confidences.append(conf)
+                        else:
+                            confidences.append(0)
+                    except Exception as ex:
+                        logging.error("Error processing %s: %s", filename, ex)
+                        confidences.append(0)
+        return sum(confidences) / len(confidences) if confidences else 0
+
+    avg_frog = compute_average_confidence(frog_dir, expected_class="frog")
+    avg_not_frog = compute_average_confidence(not_frog_dir, expected_class="frog")
+    
+    metrics_html = f"""
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <title>Model Metrics</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+        <style>
+          body {{
+            background: #f1f5f9;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+          }}
+          .container {{
+            margin-top: 50px;
+          }}
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="card mx-auto">
+            <div class="card-header text-center">
+              <h2>Model Metrics</h2>
+            </div>
+            <div class="card-body">
+              <p><strong>Average Confidence on Frog Images:</strong> {avg_frog*100:.2f}%</p>
+              <p><strong>Average Confidence on Not-Frog Images:</strong> {avg_not_frog*100:.2f}%</p>
+              <a href="/" class="btn btn-primary">Go Back</a>
+            </div>
+          </div>
+        </div>
+      </body>
+    </html>
+    """
+    return metrics_html
+
+if __name__ == "__main__":
+    app.run(debug=True)
