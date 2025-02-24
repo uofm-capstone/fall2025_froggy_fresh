@@ -5,6 +5,7 @@ import traceback
 import tempfile
 import base64
 from io import BytesIO
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from flask import Flask, request, render_template_string
 from PIL import Image, ImageDraw, ImageFont
 from dotenv import load_dotenv
@@ -20,16 +21,20 @@ logging.basicConfig(level=logging.INFO)
 # Import the Roboflow InferenceHTTPClient.
 from inference_sdk import InferenceHTTPClient
 
-# Initialize the Roboflow client with API key from environment.
+# Initialize the Roboflow client.
 ROBOFLOW_API_KEY = os.environ.get("ROBOFLOW_API_KEY")
 CLIENT = InferenceHTTPClient(
     api_url="https://detect.roboflow.com", 
-    api_key=ROBOFLOW_API_KEY  # API key loaded from .env file.
+    api_key=ROBOFLOW_API_KEY
 )
 
 app = Flask(__name__)
 
-# Modern, beautiful Bootstrap UI for the home and prediction page.
+# Helper: count images in a directory.
+def count_images(directory, extensions=('.jpg', '.jpeg', '.png')):
+    return sum(1 for file in os.listdir(directory) if file.lower().endswith(extensions))
+
+# Home / Predict Page Template
 HTML_TEMPLATE = '''
 <!DOCTYPE html>
 <html lang="en">
@@ -37,39 +42,47 @@ HTML_TEMPLATE = '''
   <meta charset="UTF-8">
   <title>Frog Identifier</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- Bootstrap CSS (v4.5) -->
+  <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <style>
     body {
-      background: #f1f5f9;
+      background: #e9ecef;
       font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     }
     .container {
-      margin-top: 50px;
+      margin-top: 60px;
     }
     .card {
       border: none;
       border-radius: 1rem;
-      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
     .card-header {
-      background-color: #4a90e2;
+      background-color: #007bff;
       color: white;
       border-top-left-radius: 1rem;
       border-top-right-radius: 1rem;
       text-align: center;
-    }
-    .card-body {
-      padding: 2rem;
-    }
-    .custom-file-label::after {
-      content: "Browse";
     }
     .result-img {
       max-width: 100%;
       height: auto;
       border-radius: 0.5rem;
       margin-top: 15px;
+    }
+    .custom-file-label::after {
+      content: "Browse";
+    }
+    /* Loading overlay for home page */
+    #loading {
+      display: none; 
+      position: fixed; 
+      top: 0; left: 0; 
+      width: 100%; height: 100%; 
+      background: rgba(255,255,255,0.8); 
+      z-index: 9999; 
+      text-align: center; 
+      padding-top: 20%;
     }
   </style>
 </head>
@@ -98,8 +111,15 @@ HTML_TEMPLATE = '''
     </div>
     <br>
     <div class="text-center">
-      <a href="/metrics" class="btn btn-secondary">View Metrics</a>
+      <a href="/dashboard" class="btn btn-secondary">View Performance Dashboard</a>
     </div>
+  </div>
+  <!-- Loading overlay for home page -->
+  <div id="loading">
+    <div class="spinner-border text-primary" role="status">
+      <span class="sr-only">Loading Dashboard...</span>
+    </div>
+    <p>Loading Dashboard...</p>
   </div>
   <!-- jQuery and Bootstrap JS -->
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
@@ -109,6 +129,15 @@ HTML_TEMPLATE = '''
     $(".custom-file-input").on("change", function(){
       var fileName = $(this).val().split("\\\\").pop();
       $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+    });
+    // Show loading overlay on dashboard link click.
+    document.addEventListener("DOMContentLoaded", function(){
+      var dashboardLink = document.querySelector('a[href="/dashboard"]');
+      if(dashboardLink){
+        dashboardLink.addEventListener("click", function(){
+          document.getElementById("loading").style.display = "block";
+        });
+      }
     });
   </script>
 </body>
@@ -129,15 +158,13 @@ def predict():
     try:
         img_bytes = file.read()
         img = Image.open(BytesIO(img_bytes)).convert("RGB")
-        logging.info("Image loaded successfully.")
-        
+        logging.info("Image loaded.")
         with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp:
             tmp.write(img_bytes)
             tmp_path = tmp.name
 
         result = CLIENT.infer(tmp_path, model_id="frog-ukiu5/1")
         logging.info("Roboflow result: %s", result)
-        
         os.remove(tmp_path)
         predictions = result.get("predictions", [])
         if predictions:
@@ -147,7 +174,6 @@ def predict():
                 font = ImageFont.truetype("arial.ttf", size=16)
             except Exception:
                 font = ImageFont.load_default()
-            
             x_center = best_pred.get("x")
             y_center = best_pred.get("y")
             width = best_pred.get("width")
@@ -165,7 +191,6 @@ def predict():
             text_height = bbox[3] - bbox[1]
             draw.rectangle([left, top - text_height, left + text_width, top], fill="red")
             draw.text((left, top - text_height), text, fill="white", font=font)
-            
             buffered = BytesIO()
             img.save(buffered, format="JPEG")
             output_image = base64.b64encode(buffered.getvalue()).decode("utf-8")
@@ -184,7 +209,7 @@ def predict():
                 output_image=output_image
             )
         else:
-            logging.info("No predictions returned from Roboflow API.")
+            logging.info("No predictions returned.")
             return render_template_string(
                 HTML_TEMPLATE,
                 prediction="No predictions available. Please try again.",
@@ -195,69 +220,245 @@ def predict():
         logging.error("Error during prediction: %s", traceback.format_exc())
         return "Error processing image", 500
 
-@app.route("/metrics", methods=["GET"])
-def metrics():
+# Helper: Process one image for performance dashboard.
+def process_image(img_path, expected_label):
+    """
+    Run inference on one image and return:
+      (is_correct, confidence, status)
+    where status is "ok" if processed successfully, or "error".
+    """
+    try:
+        result = CLIENT.infer(img_path, model_id="frog-ukiu5/1")
+        preds = result.get("predictions", [])
+        if preds:
+            best = max(preds, key=lambda p: p.get("confidence", 0))
+            pred_label = best.get("class", "").lower()
+            confidence = best.get("confidence", 0)
+        else:
+            pred_label = "nothing"
+            confidence = 0
+        status = "ok"
+    except Exception as ex:
+        logging.error("Error processing %s: %s", img_path, ex)
+        return None, None, "error"
+    if expected_label == "frog":
+        is_correct = (pred_label == "frog")
+    else:
+        is_correct = (pred_label != "frog")
+    return is_correct, confidence, status
+
+# Compute performance metrics in parallel.
+def compute_performance_parallel(directory, expected_label, max_workers=8):
+    error_files = []
+    image_files = [f for f in os.listdir(directory) if f.lower().endswith((".jpg", ".jpeg", ".png"))]
+    total_images = len(image_files)
+    if total_images == 0:
+        return 0, 0, 0, error_files
+    correct = 0
+    confidences = []
+    processed = 0
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = {executor.submit(process_image, os.path.join(directory, filename), expected_label): filename for filename in image_files}
+        for future in as_completed(futures):
+            filename = futures[future]
+            try:
+                is_correct, conf, status = future.result()
+                if status == "error":
+                    error_files.append(filename)
+                else:
+                    if is_correct:
+                        correct += 1
+                    confidences.append(conf)
+                    processed += 1
+            except Exception as e:
+                logging.error("Error processing %s: %s", filename, e)
+                error_files.append(filename)
+    accuracy = (correct / processed * 100) if processed > 0 else 0
+    avg_confidence = (sum(confidences) / len(confidences) * 100) if confidences else 0
+    return accuracy, avg_confidence, correct, error_files
+
+# Performance Dashboard Route with modern UI, full-screen loading overlay,
+# updated chart labels showing classified/total counts, and non-closable errors.
+@app.route("/dashboard", methods=["GET"])
+def dashboard():
     frog_dir = "frog_images/frog/"
     not_frog_dir = "frog_images/not_frog/"
     
-    def compute_average_confidence(directory, expected_class="frog"):
-        confidences = []
-        if os.path.exists(directory) and os.path.isdir(directory):
-            for filename in os.listdir(directory):
-                if filename.lower().endswith((".jpg", ".jpeg", ".png")):
-                    img_path = os.path.join(directory, filename)
-                    try:
-                        result = CLIENT.infer(img_path, model_id="frog-ukiu5/1")
-                        preds = result.get("predictions", [])
-                        if preds:
-                            best = max(preds, key=lambda p: p.get("confidence", 0))
-                            conf = best.get("confidence", 0) if best.get("class", "").lower() == expected_class else 0
-                            confidences.append(conf)
-                        else:
-                            confidences.append(0)
-                    except Exception as ex:
-                        logging.error("Error processing %s: %s", filename, ex)
-                        confidences.append(0)
-        return sum(confidences) / len(confidences) if confidences else 0
-
-    avg_frog = compute_average_confidence(frog_dir, expected_class="frog")
-    avg_not_frog = compute_average_confidence(not_frog_dir, expected_class="frog")
+    # Compute performance metrics in parallel.
+    frog_accuracy, frog_avg_conf, correct_frog, frog_errors = compute_performance_parallel(frog_dir, expected_label="frog")
+    not_frog_accuracy, not_frog_avg_conf, correct_not_frog, not_frog_errors = compute_performance_parallel(not_frog_dir, expected_label="nothing")
     
-    metrics_html = f"""
+    # Get image counts.
+    frog_count = count_images(frog_dir)
+    not_frog_count = count_images(not_frog_dir)
+    total_count = frog_count + not_frog_count
+
+    # Build a non-closable error alert.
+    errors_html = ""
+    if frog_errors or not_frog_errors:
+        errors_html = (
+            "<div class='alert alert-danger mt-3' role='alert'>"
+            "<h5>Error processing the following images:</h5><ul>"
+        )
+        for fname in frog_errors + not_frog_errors:
+            errors_html += f"<li>{fname}</li>"
+        errors_html += "</ul></div>"
+    
+    dashboard_html = f"""
     <!DOCTYPE html>
     <html lang="en">
       <head>
         <meta charset="UTF-8">
-        <title>Model Metrics</title>
+        <title>Performance Dashboard</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+        <!-- Chart.js -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <style>
           body {{
-            background: #f1f5f9;
+            background: #e9ecef;
             font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
           }}
           .container {{
-            margin-top: 50px;
+            margin-top: 40px;
+          }}
+          /* Full-screen loading overlay style */
+          #loading {{
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.9);
+            z-index: 9999;
+            text-align: center;
+            padding-top: 20%;
+          }}
+          .stats-card {{
+            margin-top: 20px;
           }}
         </style>
       </head>
       <body>
-        <div class="container">
-          <div class="card mx-auto">
-            <div class="card-header text-center">
-              <h2>Model Metrics</h2>
+        <div id="loading">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+          <h4 class="mt-3">Loading Dashboard...</h4>
+        </div>
+        <div class="container" id="dashboardContent" style="display:none;">
+          <div class="card shadow-sm">
+            <div class="card-header text-center bg-primary text-white">
+              <h3>Performance Dashboard</h3>
             </div>
             <div class="card-body">
-              <p><strong>Average Confidence on Frog Images:</strong> {avg_frog*100:.2f}%</p>
-              <p><strong>Average Confidence on Not-Frog Images:</strong> {avg_not_frog*100:.2f}%</p>
-              <a href="/" class="btn btn-primary">Go Back</a>
+              <div class="row mb-3">
+                <div class="col-md-4">
+                  <div class="card text-center stats-card">
+                    <div class="card-body">
+                      <h5 class="card-title">Frog Images</h5>
+                      <p class="card-text">{correct_frog} / {frog_count}</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="card text-center stats-card">
+                    <div class="card-body">
+                      <h5 class="card-title">Not-Frog Images</h5>
+                      <p class="card-text">{correct_not_frog} / {not_frog_count}</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="card text-center stats-card">
+                    <div class="card-body">
+                      <h5 class="card-title">Total Images</h5>
+                      <p class="card-text">{total_count}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6">
+                  <canvas id="accuracyChart" width="400" height="300"></canvas>
+                </div>
+                <div class="col-md-6">
+                  <canvas id="confidenceChart" width="400" height="300"></canvas>
+                </div>
+              </div>
+              {errors_html}
+              <div class="text-center mt-4">
+                <a href="/" class="btn btn-primary">Go Back</a>
+              </div>
             </div>
           </div>
         </div>
+        <script>
+          // When window loads, hide loading overlay and show dashboard.
+          window.addEventListener("load", function() {{
+            document.getElementById("loading").style.display = "none";
+            document.getElementById("dashboardContent").style.display = "block";
+          }});
+          
+          // Accuracy Chart with updated labels showing classified/total.
+          var ctx = document.getElementById('accuracyChart').getContext('2d');
+          var accuracyChart = new Chart(ctx, {{
+            type: 'bar',
+            data: {{
+              labels: [
+                `Frog Images ({correct_frog}/{frog_count})`, 
+                `Not-Frog Images ({correct_not_frog}/{not_frog_count})`
+              ],
+              datasets: [{{
+                label: 'Accuracy (%)',
+                data: [{frog_accuracy:.2f}, {not_frog_accuracy:.2f}],
+                backgroundColor: ['rgba(40, 167, 69, 0.2)','rgba(220, 53, 69, 0.2)'],
+                borderColor: ['rgba(40, 167, 69, 1)','rgba(220, 53, 69, 1)'],
+                borderWidth: 1
+              }}]
+            }},
+            options: {{
+              scales: {{
+                y: {{
+                  beginAtZero: true,
+                  max: 100
+                }}
+              }}
+            }}
+          }});
+          
+          // Confidence Chart with updated labels showing classified/total.
+          var ctx2 = document.getElementById('confidenceChart').getContext('2d');
+          var confidenceChart = new Chart(ctx2, {{
+            type: 'bar',
+            data: {{
+              labels: [
+                `Frog Images ({correct_frog}/{frog_count})`, 
+                `Not-Frog Images ({correct_not_frog}/{not_frog_count})`
+              ],
+              datasets: [{{
+                label: 'Avg Confidence (%)',
+                data: [{frog_avg_conf:.2f}, {not_frog_avg_conf:.2f}],
+                backgroundColor: ['rgba(23, 162, 184, 0.2)','rgba(255, 193, 7, 0.2)'],
+                borderColor: ['rgba(23, 162, 184, 1)','rgba(255, 193, 7, 1)'],
+                borderWidth: 1
+              }}]
+            }},
+            options: {{
+              scales: {{
+                y: {{
+                  beginAtZero: true,
+                  max: 100
+                }}
+              }}
+            }}
+          }});
+        </script>
       </body>
     </html>
     """
-    return metrics_html
+    return dashboard_html
 
 if __name__ == "__main__":
     app.run(debug=True)
