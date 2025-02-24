@@ -1,6 +1,3 @@
 .DS_Store
 data/
-test/
-test_frog/
-test_not_frog/
 venv/
