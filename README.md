@@ -8,11 +8,10 @@ https://docs.google.com/spreadsheets/d/1kc0mcMinUaesgds4kaM9AclEbhH363xrw8v5fDTN
 https://livememphis-my.sharepoint.com/:w:/g/personal/nmosman_memphis_edu/EZlw_2KXH71DrtBlCKx9Gr8B8JAPpD8BHgSKlb1FQRQiTg?e=7ufjr1
 
 * Client Meeting Notes:
-https://livememphis-my.sharepoint.com/:b:/g/personal/nmosman_memphis_edu/EdxSpCjFKgFOjDH5fKVj-roBo2872t1Y4VF2RPqtwCjdfA?e=FzbyIv
-https://livememphis-my.sharepoint.com/:b:/g/personal/nmosman_memphis_edu/EcgfCBerjXRNnw2QoLftuMcBm21Q-dfONUFv38i56fcewg?e=heiH2m
+https://livememphis-my.sharepoint.com/:w:/g/personal/cvalle_memphis_edu/EQczpO87NJxHnRGO_bx1CJ0B-jE7AL2iUuWmwxeo0ENU7A?e=Vi30q7
 
-* Sprint 1 Demo Day ppt:
-https://livememphis-my.sharepoint.com/:p:/g/personal/nmosman_memphis_edu/ET-3KuI3jO5Dvv5dbvAMfb4BKWKMCHx_835wU_bNXoJHmQ?e=pKb9Y8
+* Sprint 2 Demo Day ppt:
+https://docs.google.com/presentation/d/1KkSvdi8EnUU4oYPHRw5prFNZ8Nm6sFmQ9k4s4lVv1Qk/edit?usp=sharing
   
 # Frog Capture AI Recognizer
 This project aims to develop an automated deep learning system that detects frogs in image captured from frog traps. 
