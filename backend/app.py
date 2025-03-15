@@ -73,11 +73,11 @@ def process_images():
 
             # Copy image to the destination folder
             shutil.copy(img_path, os.path.join(destination_folder, os.path.basename(img_path)))
-            print(f"Moved {img_path} to {label} folder")
+            print(f"Moved {img_path} to {label} folder", flush=True)
         except Exception as e:
             print(f"Error processing {img_path}: {e}")
 
-    print("\nImage classification complete. Images have been moved to the respective folders.")
+    print("\nImage classification complete. Images have been moved to the respective folders.", flush=True)
 
     # Cleanup: remove the zip file and extracted folder (if it is not BASE_DIR)
     try:
