@@ -7,7 +7,6 @@ import ResultsView from "../components/ResultsView";
 import ThemeToggle from "../components/ThemeToggle";
 
 
-// Define a proper type for the results
 interface SortResults {
   frogs: number;
   notFrogs: number;
