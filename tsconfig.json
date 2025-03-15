@@ -1,0 +1,20 @@
+{
+    "compilerOptions": {
+      "jsx": "react-jsx",         // Use React JSX transformation
+      "moduleResolution": "node", // Use Node.js module resolution strategy
+      "esModuleInterop": true,    // Enable interoperability between CommonJS and ES Modules
+      "skipLibCheck": true,       // Skip library checks for faster compilation
+      "strict": true,             // Enable all strict type checking options
+      "baseUrl": "./src",         // Set the base directory to `src`
+      "paths": {
+        "@/*": ["*"]              // Resolve `@` to the `src/` folder
+      },
+      "module": "ESNext",         // Ensure ES module syntax is supported
+      "target": "ESNext"          // Target the latest JavaScript features
+    },
+    "include": [
+      "src/**/*",                 // Include all files under `src/`
+      "vite.config.ts"            // Include the Vite config for TypeScript
+    ]
+  }
+  
