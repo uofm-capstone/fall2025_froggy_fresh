@@ -9,35 +9,40 @@ from tensorflow.keras.preprocessing import image
 
 app = Flask(__name__)
 
-# Load the trained model
-model = load_model("frog_detector.h5")
+# Define the backend base directory
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Directories for classification (output folders)
-FROGS_FOLDER = "frogs"
-FILTERED_FOLDER = "filtered"
+# Load the trained model from the backend directory
+model_path = os.path.join(BASE_DIR, "frog_detector.h5")
+model = load_model(model_path)
+
+# Directories for classification (output folders) within the backend directory
+FROGS_FOLDER = os.path.join(BASE_DIR, "frogs")
+FILTERED_FOLDER = os.path.join(BASE_DIR, "filtered")
 
 # Create destination folders if they don't exist
 os.makedirs(FROGS_FOLDER, exist_ok=True)
 os.makedirs(FILTERED_FOLDER, exist_ok=True)
 
 def process_images():
-    zip_file_path = "uploaded_folder.zip"
+    # Save and process the zip file from within the backend directory
+    zip_file_path = os.path.join(BASE_DIR, "uploaded_folder.zip")
     if not os.path.exists(zip_file_path):
         return print("No zip file found.")
 
-    # Extract the zip file, preserving its internal structure
+    # Extract the zip file into the backend directory
     with zipfile.ZipFile(zip_file_path, "r") as zip_ref:
-        zip_ref.extractall(".")
+        zip_ref.extractall(BASE_DIR)
         all_names = zip_ref.namelist()
     print("Extracted zip file contents.")
 
     # Determine the common prefix (top-level folder) if it exists
     common_prefix = os.path.commonprefix(all_names)
     if common_prefix and common_prefix.endswith("/"):
-        base_folder = common_prefix.rstrip("/")
+        base_folder = os.path.join(BASE_DIR, common_prefix.rstrip("/"))
     else:
-        # If no common prefix is found, we assume the current directory
-        base_folder = "."
+        # If no common prefix is found, we assume the BASE_DIR
+        base_folder = BASE_DIR
     print(f"Processing images in folder: {base_folder}")
 
     # Recursively get image files in base_folder
@@ -74,14 +79,14 @@ def process_images():
 
     print("\nImage classification complete. Images have been moved to the respective folders.")
 
-    # Cleanup: remove the zip file and extracted folder (if it is not the current directory)
+    # Cleanup: remove the zip file and extracted folder (if it is not BASE_DIR)
     try:
         os.remove(zip_file_path)
         print("Deleted the uploaded zip file.")
     except Exception as e:
         print(f"Error deleting zip file: {e}")
 
-    if base_folder != "." and os.path.exists(base_folder):
+    if base_folder != BASE_DIR and os.path.exists(base_folder):
         try:
             shutil.rmtree(base_folder)
             print(f"Deleted the extracted folder: {base_folder}")
@@ -97,8 +102,8 @@ def upload_and_process():
     if file.filename == '':
         return jsonify({'error': 'No file selected'}), 400
 
-    # Save the uploaded zip file
-    zip_file_path = "uploaded_folder.zip"
+    # Save the uploaded zip file into the backend directory
+    zip_file_path = os.path.join(BASE_DIR, "uploaded_folder.zip")
     file.save(zip_file_path)
     print(f"Received file: {file.filename}")
 
@@ -108,4 +113,4 @@ def upload_and_process():
     return jsonify({'message': 'File uploaded, processed, and cleanup complete'}), 200
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
