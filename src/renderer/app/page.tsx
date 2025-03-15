@@ -4,6 +4,8 @@ import { useState } from "react";
 import Dashboard from "../components/Dashboard";
 import SortView from "../components/SortView";
 import ResultsView from "../components/ResultsView";
+import ThemeToggle from "../components/ThemeToggle";
+
 
 // Define a proper type for the results
 interface SortResults {
@@ -23,12 +25,10 @@ export default function Home() {
   const [currentView, setCurrentView] = useState<"dashboard" | "sort" | "results">("dashboard");
   const [sortResults, setSortResults] = useState<SortResults | null>(null);
 
-  // Navigate between different views
   const navigateTo = (view: "dashboard" | "sort" | "results") => {
     setCurrentView(view);
   };
 
-  // Handle the completion of the sort process
   const handleSortComplete = (results: SortResults) => {
     setSortResults(results);
     navigateTo("results");
@@ -36,6 +36,8 @@ export default function Home() {
 
   return (
     <main className="container mx-auto px-4 py-8">
+      <ThemeToggle /> {/* Add this line to include the button */}
+      
       {currentView === "dashboard" && (
         <Dashboard
           onSortClick={() => navigateTo("sort")}

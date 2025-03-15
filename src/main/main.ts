@@ -8,12 +8,29 @@ app.whenReady().then(() => {
     width: 800,
     height: 600,
     webPreferences: {
-      preload: path.join(__dirname, '../preload/index.js'), // Optional if you use a preload script
-      nodeIntegration: true,  // Set this to true only if you're sure of the security
+      preload: path.join(__dirname, '../preload/index.js'),
+      nodeIntegration: true,
+      contextIsolation: false,
+      webSecurity: true
     },
+    backgroundColor: '#ffffff',
   });
 
-  mainWindow.loadURL('http://localhost:5173'); // Vite's dev server URL
+  // In development, load from Vite's dev server
+  if (process.env.NODE_ENV === 'development') {
+    mainWindow.loadURL('http://localhost:5173');
+    mainWindow.webContents.openDevTools();
+  } else {
+    // In production, load the built files
+    mainWindow.loadFile(path.join(__dirname, '../renderer/dist/index.html'));
+  }
+
+  // Handle theme changes
+  mainWindow.webContents.on('dom-ready', () => {
+    mainWindow.webContents.executeJavaScript(`
+      document.documentElement.classList.add('light');
+    `);
+  });
 });
 
 app.on('window-all-closed', () => {
