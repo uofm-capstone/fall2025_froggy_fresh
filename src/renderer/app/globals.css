@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+/* took inspiration from apple's UI */
+
 :root {
   /* Apple-inspired color palette */
   --apple-background: #f5f5f7;
