@@ -4,10 +4,12 @@ import shutil
 import zipfile
 import tensorflow as tf
 from flask import Flask, request, jsonify
+from flask_cors import CORS  # <-- add this import
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 
 app = Flask(__name__)
+CORS(app)  # <-- enable CORS for all routes
 
 # Define the backend base directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -28,7 +30,8 @@ def process_images():
     # Save and process the zip file from within the backend directory
     zip_file_path = os.path.join(BASE_DIR, "uploaded_folder.zip")
     if not os.path.exists(zip_file_path):
-        return print("No zip file found.")
+        print("No zip file found.")
+        return None
 
     # Extract the zip file into the backend directory
     with zipfile.ZipFile(zip_file_path, "r") as zip_ref:
@@ -38,10 +41,9 @@ def process_images():
 
     # Determine the common prefix (top-level folder) if it exists
     common_prefix = os.path.commonprefix(all_names)
-    if common_prefix and common_prefix.endswith("/"):
+    if (common_prefix and common_prefix.endswith("/")):
         base_folder = os.path.join(BASE_DIR, common_prefix.rstrip("/"))
     else:
-        # If no common prefix is found, we assume the BASE_DIR
         base_folder = BASE_DIR
     print(f"Processing images in folder: {base_folder}")
 
@@ -52,34 +54,52 @@ def process_images():
             if file.lower().endswith(('.png', '.jpg', '.jpeg')):
                 image_files.append(os.path.join(root, file))
     
+    # Initialize stats counters
+    frog_count = 0
+    not_frog_count = 0
+    confidence_total = 0.0
+    processed_files = []
+    last_file = ""
+
     # Process and classify images
     for img_path in image_files:
         try:
-            # Load image in RGB (3 channels)
             img = image.load_img(img_path, target_size=(224, 224), color_mode="rgb")
             img_array = image.img_to_array(img) / 255.0
 
-            # Convert to grayscale by averaging the channels and reassemble into 3 channels
+            # Convert to grayscale and replicate to three channels
             img_array = np.mean(img_array, axis=-1, keepdims=True)
             img_array = np.repeat(img_array, 3, axis=-1)
             img_array = np.expand_dims(img_array, axis=0)
 
-            # Make prediction
             prediction = model.predict(img_array)[0][0]
 
-            # Classify as Frog or Not Frog
-            label = "Not Frog" if prediction > 0.5 else "Frog"
-            destination_folder = FROGS_FOLDER if label == "Frog" else FILTERED_FOLDER
+            # Determine label and accumulate stats
+            if prediction > 0.5:
+                label = "Not Frog"
+                not_frog_count += 1
+                file_conf = prediction
+            else:
+                label = "Frog"
+                frog_count += 1
+                file_conf = 1 - prediction
 
-            # Copy image to the destination folder
+            confidence_total += file_conf
+            processed_files.append(os.path.basename(img_path))
+            last_file = img_path
+
+            destination_folder = FROGS_FOLDER if label == "Frog" else FILTERED_FOLDER
             shutil.copy(img_path, os.path.join(destination_folder, os.path.basename(img_path)))
             print(f"Moved {img_path} to {label} folder", flush=True)
         except Exception as e:
             print(f"Error processing {img_path}: {e}")
 
-    print("\nImage classification complete. Images have been moved to the respective folders.", flush=True)
+    total_processed = frog_count + not_frog_count
+    average_confidence = round((confidence_total / total_processed) * 100) if total_processed > 0 else 0
 
-    # Cleanup: remove the zip file and extracted folder (if it is not BASE_DIR)
+    print("\nImage classification complete. Images have been moved to respective folders.", flush=True)
+
+    # Cleanup: Remove zip and extracted folder if applicable
     try:
         os.remove(zip_file_path)
         print("Deleted the uploaded zip file.")
@@ -93,6 +113,16 @@ def process_images():
         except Exception as e:
             print(f"Error deleting extracted folder {base_folder}: {e}")
 
+    stats = {
+        "frogs": frog_count,
+        "notFrogs": not_frog_count,
+        "confidence": average_confidence,
+        "files": processed_files,
+        "totalFiles": f"{total_processed}",
+        "currentFile": last_file
+    }
+    return stats
+
 @app.route('/upload', methods=['POST'])
 def upload_and_process():
     if 'file' not in request.files:
@@ -102,15 +132,15 @@ def upload_and_process():
     if file.filename == '':
         return jsonify({'error': 'No file selected'}), 400
 
-    # Save the uploaded zip file into the backend directory
     zip_file_path = os.path.join(BASE_DIR, "uploaded_folder.zip")
     file.save(zip_file_path)
     print(f"Received file: {file.filename}")
 
-    # Process the uploaded zip file
-    process_images()
-
-    return jsonify({'message': 'File uploaded, processed, and cleanup complete'}), 200
+    stats = process_images()
+    if stats:
+        return jsonify(stats), 200
+    else:
+        return jsonify({'error': 'No zip file processed'}), 400
 
 if __name__ == '__main__':
     app.run(debug=False)

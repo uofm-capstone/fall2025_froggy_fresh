@@ -18,6 +18,16 @@ interface SortViewProps {
 export default function SortView({ onBack, onSortComplete }: SortViewProps) {
   const [folderPath, setFolderPath] = useState<string>("");
   const [isFolderSelected, setIsFolderSelected] = useState<boolean>(false);
+  // New state to store backend stats
+  const [stats, setStats] = useState<{
+    frogs: number;
+    notFrogs: number;
+    confidence: number;
+    files: any[];
+    totalFiles: string;
+    currentFile: string;
+  } | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Handle browse button click
@@ -33,6 +43,8 @@ export default function SortView({ onBack, onSortComplete }: SortViewProps) {
     if (files && files.length > 0) {
       setFolderPath(files[0].webkitRelativePath.split("/")[0]);
       setIsFolderSelected(true);
+      // Reset stats when a new folder is selected
+      setStats(null);
     }
   };
 
@@ -60,15 +72,10 @@ export default function SortView({ onBack, onSortComplete }: SortViewProps) {
 
         if (response.ok) {
           const data = await response.json();
-          console.log("Upload successful:", data.message);
-          onSortComplete({
-            frogs: 20,
-            notFrogs: 122,
-            confidence: 87,
-            files: [],
-            totalFiles: "142/1281",
-            currentFile: "./output/Camera1/2024-04-12-Camera1-100.jpg"
-          });
+          console.log("Upload successful:", data);
+          setStats(data);
+          // Remove or delay redirection for manual confirmation
+          // onSortComplete(data);
         } else {
           console.error("Upload failed");
         }
@@ -129,29 +136,36 @@ export default function SortView({ onBack, onSortComplete }: SortViewProps) {
             <div className="flex justify-between items-center mb-6">
               <div className="flex gap-6">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-[var(--apple-accent)]">{isFolderSelected ? "20" : "-"}</div>
+                  <div className="text-3xl font-bold text-[var(--apple-accent)]">
+                    {stats ? stats.frogs : "-"}
+                  </div>
                   <div className="text-sm text-[var(--apple-text)] uppercase">FROGS</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-[var(--apple-text)]">{isFolderSelected ? "122" : "-"}</div>
+                  <div className="text-3xl font-bold text-[var(--apple-text)]">
+                    {stats ? stats.notFrogs : "-"}
+                  </div>
                   <div className="text-sm text-[var(--apple-text)] uppercase">NOT FROG</div>
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-[var(--apple-text)]">{isFolderSelected ? "87%" : "-"}</div>
+                <div className="text-3xl font-bold text-[var(--apple-text)]">
+                  {stats ? `${stats.confidence}%` : "-"}
+                </div>
                 <div className="text-sm text-[var(--apple-text)] uppercase">CONFIDENCE</div>
               </div>
             </div>
 
             <div className="h-2 w-full bg-[#f5f5f5] dark:bg-[#1c1c1e] rounded-full mb-6">
-              {isFolderSelected && (
-                <div className="h-2 bg-[var(--apple-accent)] rounded-full" style={{ width: "87%" }}></div>
-              )}
+              <div
+                className="h-2 bg-[var(--apple-accent)] rounded-full"
+                style={{ width: stats ? `${stats.confidence}%` : "0%" }}
+              ></div>
             </div>
 
             <div className="space-y-2 mb-6 min-h-[160px] flex items-center justify-center">
               <div className="text-[var(--apple-text-secondary)]">
-                {isFolderSelected ? "Processing files..." : "Select a folder to begin sorting"}
+                {stats ? "Processing complete" : "Select a folder to begin sorting"}
               </div>
             </div>
 
