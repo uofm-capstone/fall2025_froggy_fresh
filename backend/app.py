@@ -7,6 +7,8 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS  # <-- add this import
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
+import json
+import datetime
 
 app = Flask(__name__)
 CORS(app)  # <-- enable CORS for all routes
@@ -74,21 +76,25 @@ def process_images():
 
             prediction = model.predict(img_array)[0][0]
 
-            # Determine label and accumulate stats
             if prediction > 0.5:
-                label = "Not Frog"
+                label = "NOT FROG"
                 not_frog_count += 1
                 file_conf = prediction
             else:
-                label = "Frog"
+                label = "FROG"
                 frog_count += 1
                 file_conf = 1 - prediction
 
             confidence_total += file_conf
-            processed_files.append(os.path.basename(img_path))
+            # Store file details instead of just name:
+            processed_files.append({
+                "name": os.path.basename(img_path),
+                "classification": label,
+                "confidence": round(file_conf * 100)  # store as percentage integer
+            })
             last_file = img_path
 
-            destination_folder = FROGS_FOLDER if label == "Frog" else FILTERED_FOLDER
+            destination_folder = FROGS_FOLDER if label == "FROG" else FILTERED_FOLDER
             shutil.copy(img_path, os.path.join(destination_folder, os.path.basename(img_path)))
             print(f"Moved {img_path} to {label} folder", flush=True)
         except Exception as e:
@@ -97,23 +103,9 @@ def process_images():
     total_processed = frog_count + not_frog_count
     average_confidence = round((confidence_total / total_processed) * 100) if total_processed > 0 else 0
 
-    print("\nImage classification complete. Images have been moved to respective folders.", flush=True)
-
-    # Cleanup: Remove zip and extracted folder if applicable
-    try:
-        os.remove(zip_file_path)
-        print("Deleted the uploaded zip file.")
-    except Exception as e:
-        print(f"Error deleting zip file: {e}")
-
-    if base_folder != BASE_DIR and os.path.exists(base_folder):
-        try:
-            shutil.rmtree(base_folder)
-            print(f"Deleted the extracted folder: {base_folder}")
-        except Exception as e:
-            print(f"Error deleting extracted folder {base_folder}: {e}")
-
+    runDate = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     stats = {
+        "runDate": runDate,
         "frogs": frog_count,
         "notFrogs": not_frog_count,
         "confidence": average_confidence,
@@ -121,6 +113,22 @@ def process_images():
         "totalFiles": f"{total_processed}",
         "currentFile": last_file
     }
+
+    # Save this run’s stats to a file for later retrieval.
+    runs_file = os.path.join(BASE_DIR, "runs.json")
+    try:
+        with open(runs_file, "r") as f:
+            runs = json.load(f)
+    except Exception:
+        runs = []
+    runs.append(stats)
+    with open(runs_file, "w") as f:
+        json.dump(runs, f)
+
+    # Also save last run stats separately if needed:
+    with open(os.path.join(BASE_DIR, "last_stats.json"), "w") as f:
+        json.dump(stats, f)
+
     return stats
 
 @app.route('/upload', methods=['POST'])
@@ -141,6 +149,21 @@ def upload_and_process():
         return jsonify(stats), 200
     else:
         return jsonify({'error': 'No zip file processed'}), 400
+
+@app.route('/results', methods=['GET'])
+def get_results():
+    # Optionally, you can support a query parameter ?date=YYYY-MM-DD to filter runs.
+    date_filter = request.args.get("date")
+    runs_file = os.path.join(BASE_DIR, "runs.json")
+    try:
+        with open(runs_file, "r") as f:
+            runs = json.load(f)
+        if date_filter:
+            filtered = [run for run in runs if run['runDate'].startswith(date_filter)]
+            return jsonify(filtered), 200
+        return jsonify(runs), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=False)
