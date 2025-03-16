@@ -129,6 +129,21 @@ def process_images():
     with open(os.path.join(BASE_DIR, "last_stats.json"), "w") as f:
         json.dump(stats, f)
 
+    # Cleanup: Remove zip file
+    try:
+        os.remove(zip_file_path)
+        print("Deleted the uploaded zip file.", flush=True)
+    except Exception as e:
+        print(f"Error deleting zip file: {e}")
+
+    # Cleanup: Remove extracted folder if it is not the base directory
+    if base_folder != BASE_DIR and os.path.exists(base_folder):
+        try:
+            shutil.rmtree(base_folder)
+            print(f"Deleted the extracted folder: {base_folder}", flush=True)
+        except Exception as e:
+            print(f"Error deleting extracted folder {base_folder}: {e}")
+
     return stats
 
 @app.route('/upload', methods=['POST'])
