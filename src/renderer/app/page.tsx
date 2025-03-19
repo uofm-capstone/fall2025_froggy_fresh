@@ -19,11 +19,6 @@ interface SortResults {
   currentFile: string;
 }
 
-interface ResultsViewProps {
-  onBack: () => void;
-  results: SortResults | null;
-}
-
 export default function Home() {
   const [currentView, setCurrentView] = useState<"dashboard" | "sort" | "results">("dashboard");
   const [sortResults, setSortResults] = useState<SortResults | null>(null);
