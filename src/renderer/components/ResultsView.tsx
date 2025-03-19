@@ -131,7 +131,6 @@ export default function ResultsView({ onBack }: { onBack: () => void }) {
                   ))
                 ) : (
                   <div className="p-4 text-[var(--apple-text)]">
-                    No files available.
                   </div>
                 )}
               </div>
