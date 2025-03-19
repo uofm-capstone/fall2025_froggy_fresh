@@ -6,7 +6,6 @@ import SortView from "../components/SortView";
 import ResultsView from "../components/ResultsView";
 import ThemeToggle from "../components/ThemeToggle";
 
-
 interface SortResults {
   frogs: number;
   notFrogs: number;
@@ -18,6 +17,11 @@ interface SortResults {
   }>;
   totalFiles: string;
   currentFile: string;
+}
+
+interface ResultsViewProps {
+  onBack: () => void;
+  results: SortResults | null;
 }
 
 export default function Home() {
@@ -34,28 +38,34 @@ export default function Home() {
   };
 
   return (
-    <main className="container mx-auto px-4 py-8">
-      <ThemeToggle /> {/* Add this line to include the button */}
+    <main className="px-4 py-8">
+      <ThemeToggle /> 
       
       {currentView === "dashboard" && (
-        <Dashboard
-          onSortClick={() => navigateTo("sort")}
-          onResultsClick={() => navigateTo("results")}
-        />
+        <div className="mx-auto max-w-4xl">
+          <Dashboard
+            onSortClick={() => navigateTo("sort")}
+            onResultsClick={() => navigateTo("results")}
+          />
+        </div>
       )}
 
       {currentView === "sort" && (
-        <SortView
-          onBack={() => navigateTo("dashboard")}
-          onSortComplete={handleSortComplete}
-        />
+        <div className="w-full max-w-none">
+          <SortView
+            onBack={() => navigateTo("dashboard")}
+            onSortComplete={handleSortComplete}
+          />
+        </div>
       )}
 
       {currentView === "results" && (
-        <ResultsView
-          onBack={() => navigateTo("dashboard")}
-          results={sortResults}
-        />
+        <div className="w-full max-w-none">
+          <ResultsView
+            onBack={() => navigateTo("dashboard")}
+            results={sortResults}
+          />
+        </div>
       )}
     </main>
   );
