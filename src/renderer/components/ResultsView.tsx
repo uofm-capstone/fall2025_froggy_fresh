@@ -68,15 +68,15 @@ export default function ResultsView({ onBack }: { onBack: () => void }) {
             </div>
 
             {/* Table headers - nested grid with spacious columns */}
-            <div className="col-span-7 grid grid-cols-12 p-0 bg-[#f0f0f0] dark:bg-[#2c2c2e] font-medium text-[var(--apple-text)] border-r border-[var(--apple-border)]">
-              <div className="col-span-2 p-4 text-center">#</div>
+            <div className="col-span-6 grid grid-cols-12 p-0 bg-[#f0f0f0] dark:bg-[#2c2c2e] font-medium text-[var(--apple-text)] border-r border-[var(--apple-border)]">
+              <div className="col-span-1 p-4 text-center">#</div>
               <div className="col-span-4 p-4">File</div>
               <div className="col-span-3 p-4">Classification</div>
-              <div className="col-span-3 p-4">Confidence</div>
+              <div className="col-span-2 p-4">Confidence</div>
             </div>
 
-            {/* Preview header - takes up 3 columns */}
-            <div className="col-span-3 p-4 bg-[#f0f0f0] dark:bg-[#2c2c2e] font-medium text-[var(--apple-text)]">
+            {/* Preview header - increased from 3 to 4 columns */}
+            <div className="col-span-4 p-4 bg-[#f0f0f0] dark:bg-[#2c2c2e] font-medium text-[var(--apple-text)]">
               Preview
             </div>
           </div>
@@ -109,8 +109,8 @@ export default function ResultsView({ onBack }: { onBack: () => void }) {
               </div>
             </div>
 
-            {/* Results table - takes 7 columns with improved spacing */}
-            <div className="col-span-7 border-r border-[var(--apple-border)]">
+            {/* Results table - reduced from 7 to 6 columns */}
+            <div className="col-span-6 border-r border-[var(--apple-border)]">
               <div className="max-h-[calc(100vh-220px)] overflow-y-auto scrollbar-hidden">
                 {selectedRun && selectedRun.files.length > 0 ? (
                   selectedRun.files.map((file, idx) => (
@@ -123,10 +123,11 @@ export default function ResultsView({ onBack }: { onBack: () => void }) {
                           : ""
                       }`}
                     >
-                      <div className="col-span-2 p-3 text-center">{idx + 1}</div>
+                      <div className="col-span-1 p-3 text-center">{idx + 1}</div>
                       <div className="col-span-4 p-3 truncate">{file.name}</div>
                       <div className="col-span-3 p-3">{file.classification}</div>
-                      <div className="col-span-3 p-3">{file.confidence}%</div>
+                      {/* Confidence reduced from col-span-3 to col-span-2 */}
+                      <div className="col-span-2 p-3">{file.confidence}%</div>
                     </div>
                   ))
                 ) : (
@@ -136,8 +137,8 @@ export default function ResultsView({ onBack }: { onBack: () => void }) {
               </div>
             </div>
 
-            {/* Image preview section - takes 3 columns */}
-            <div className="col-span-3">
+            {/* Image preview section - increased from 3 to 4 columns */}
+            <div className="col-span-4">
               <div className="p-4 flex flex-col h-full">
                 <div className="relative w-full aspect-video bg-[#1c1c1e] rounded-lg overflow-hidden mb-4">
                   {selectedImage ? (
