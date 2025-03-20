@@ -74,8 +74,6 @@ export default function SortView({ onBack, onSortComplete }: SortViewProps) {
           const data = await response.json();
           console.log("Upload successful:", data);
           setStats(data);
-          // Remove or delay redirection for manual confirmation
-          // onSortComplete(data);
         } else {
           console.error("Upload failed");
         }

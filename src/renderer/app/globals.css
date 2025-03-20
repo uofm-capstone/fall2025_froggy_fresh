@@ -5,7 +5,6 @@
 /* took inspiration from apple's UI */
 
 :root {
-  /* Apple-inspired color palette */
   --apple-background: #f5f5f7;
   --apple-card-bg: rgba(255, 255, 255, 0.8);
   --apple-text: #1d1d1f;
@@ -55,17 +54,14 @@
 }
 
 @layer components {
-  /* Apple-inspired card design */
   .apple-card {
     @apply bg-[var(--apple-card-bg)] backdrop-blur-xl rounded-xl border border-[var(--apple-border)] shadow-lg p-6;
   }
 
-  /* Apple-inspired button */
   .apple-button {
     @apply bg-[var(--apple-accent)] text-white font-medium rounded-full px-6 py-2.5 transition-all hover:bg-[var(--apple-accent-hover)] focus:outline-none active:scale-95;
   }
 
-  /* Apple-inspired secondary button */
   .apple-button-secondary {
     @apply bg-[#e8e8ed] text-[var(--apple-text)] font-medium rounded-full px-6 py-2.5 transition-all hover:bg-[#d8d8dc] focus:outline-none active:scale-95;
   }
@@ -74,7 +70,6 @@
     @apply bg-[#1c1c1e] hover:bg-[#2c2c2e];
   }
 
-  /* Apple-inspired outline button */
   .apple-button-outline {
     @apply bg-transparent border border-[var(--apple-border)] text-[var(--apple-text)] font-medium rounded-full px-6 py-2.5 transition-all hover:bg-[rgba(0,0,0,0.05)] dark:hover:bg-[rgba(255,255,255,0.05)] focus:outline-none active:scale-95;
   }
@@ -83,12 +78,10 @@
     @apply bg-[#1c1c1e];
   }
 
-  /* Apple-inspired input */
   .apple-input {
     @apply bg-[#f5f5f5] dark:bg-[#1c1c1e] border border-[var(--apple-border)] rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[var(--apple-accent)] transition-all;
   }
 
-  /* Apple-inspired select */
   .apple-select {
     @apply bg-[#f5f5f5] dark:bg-[#1c1c1e] border border-[var(--apple-border)] rounded-full px-4 pr-10 py-2.5 focus:outline-none focus:ring-2 focus:ring-[var(--apple-accent)] transition-all appearance-none relative;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.5' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 8.25l-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E");
@@ -101,12 +94,10 @@
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.5' stroke='%23fff'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 8.25l-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E");
   }
 
-  /* Frosted glass effect */
   .frosted-glass {
     @apply bg-white/80 dark:bg-black/70 backdrop-blur-lg border border-white/20 dark:border-white/10;
   }
 
-  /* Apple-inspired gradient background */
   .apple-gradient {
     background: linear-gradient(to bottom, #f5f5f7, #fbfbfd);
     transition: background 0.5s ease-in-out;
@@ -117,7 +108,6 @@
   }
 }
 
-/* Apple-inspired scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
