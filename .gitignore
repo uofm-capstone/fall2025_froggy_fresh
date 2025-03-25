@@ -1,3 +1,8 @@
 .env
 frog_images/*
 frog_test/*
+__pycache__/*
+uploads/*  
+# ignore h5 and pt files
+*.h5
+*.pt
