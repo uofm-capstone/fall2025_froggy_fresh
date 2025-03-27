@@ -16,3 +16,7 @@ https://docs.google.com/presentation/d/1KkSvdi8EnUU4oYPHRw5prFNZ8Nm6sFmQ9k4s4lVv
 # Frog Capture AI Recognizer
 This project aims to develop an automated deep learning system that detects frogs in image captured from frog traps. 
 By streamlining data collection and analysis (along with more possibilities), the tool will help researchers at Memphis Zoo monitor frog behavior and populations more efficiently.
+
+# How To Run app
+
+npm install && npm run dev
