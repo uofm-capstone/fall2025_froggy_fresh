@@ -6,3 +6,5 @@ backend/frogs
 backend/filtered
 runs/
 frog_images/
+test/__pycache__
+__pycache__/
