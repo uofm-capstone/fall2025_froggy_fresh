@@ -4,3 +4,5 @@ node_modules
 backend/venv
 backend/frogs
 backend/filtered
+runs/
+frog_images/
