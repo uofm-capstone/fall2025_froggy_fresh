@@ -10,8 +10,8 @@ https://livememphis-my.sharepoint.com/:w:/g/personal/nmosman_memphis_edu/EZlw_2K
 * Client Meeting Notes:
 https://livememphis-my.sharepoint.com/:w:/g/personal/cvalle_memphis_edu/EQczpO87NJxHnRGO_bx1CJ0B-jE7AL2iUuWmwxeo0ENU7A?e=Vi30q7
 
-* Sprint 2 Demo Day ppt:
-https://docs.google.com/presentation/d/1KkSvdi8EnUU4oYPHRw5prFNZ8Nm6sFmQ9k4s4lVv1Qk/edit?usp=sharing
+* Sprint 3 Demo Day ppt:
+https://docs.google.com/presentation/d/1WJAErGWY4A57GtHuTaIDCBTBjq8lHj1J-tyWdWbYcH4/edit?usp=sharing
   
 # Frog Capture AI Recognizer
 This project aims to develop an automated deep learning system that detects frogs in image captured from frog traps. 
