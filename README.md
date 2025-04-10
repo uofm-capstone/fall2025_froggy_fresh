@@ -22,6 +22,6 @@ By streamlining data collection and analysis (along with more possibilities), th
 ## How To Run
 
 1. Download and install the [UV package manager](https://docs.astral.sh/uv/)
-2. Set up a venv with UV `uv venv` and then you can activate it by running `./.venv/bin/activate` (you might have to give yourself permissions to run it with `chmod` or its Windows equivalent)
+2. Set up a venv with UV `uv venv --python 3.10` (note we are locked to 3.10.16 because of tensorflow and this is why `uv` is really helpful) and then you can activate it by running `./.venv/bin/activate` (you might have to give yourself permissions to run it with `chmod` or its Windows equivalent)
 3. Use UV to install dependencies (read the associated documentation on how to do so, you can find the deps in `pyproject.toml`)
 4. To run the Electron side, run `npm install && npm run dev`
