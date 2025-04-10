@@ -36,7 +36,6 @@ def upload_and_process():
     data = request.json
     folder_path = data.get('folderPath')
     if folder_path:
-        # print(f"Received folderPath: {folder_path}")
         results = process_images.process_images(folder_path)
         print(results)
         return jsonify({"message": "FolderPath received", "folderPath": folder_path}), 200

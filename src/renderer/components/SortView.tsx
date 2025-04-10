@@ -1,8 +1,5 @@
 import React, { useState, useRef } from "react";
 import BackButton from "./BackButton";
-import JSZip from "jszip";
-
-import { dialog } from "electron";
 const { ipcRenderer } = window.require("electron");
 
 // Define SortViewProps interface
@@ -58,42 +55,6 @@ export default function SortView({ onBack, onSortComplete }: SortViewProps) {
         folderPath: folderPath,
       })
     });
-    
-    if (fileInputRef.current?.files) {
-      // const files = fileInputRef.current?.files;
-      // Array.from(files).forEach((file) => {
-      //   // console.log(file.name);
-      // })
-      // const zip = new JSZip();
-      // // Add all files preserving folder structure
-      // Array.from(fileInputRef.current.files).forEach((file) => {
-      //   zip.file(file.webkitRelativePath, file);
-      // });
-
-      // try {
-      //   // Generate zip blob
-      //   const zipBlob = await zip.generateAsync({ type: "blob" });
-
-      //   // Create form data to send to backend
-      //   const formData = new FormData();
-      //   formData.append("file", zipBlob, "uploaded_folder.zip");
-
-      //   const response = await fetch("http://127.0.0.1:5000/upload", {
-      //     method: "POST",
-      //     body: formData,
-      //   });
-
-      //   if (response.ok) {
-      //     const data = await response.json();
-      //     console.log("Upload successful:", data);
-      //     setStats(data);
-      //   } else {
-      //     console.error("Upload failed");
-      //   }
-      // } catch (error) {
-      //   console.error("Error during zipping or upload:", error);
-      // }
-    }
   };
 
   return (
