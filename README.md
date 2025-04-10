@@ -8,7 +8,7 @@ https://docs.google.com/spreadsheets/d/1kc0mcMinUaesgds4kaM9AclEbhH363xrw8v5fDTN
 https://livememphis-my.sharepoint.com/:w:/g/personal/nmosman_memphis_edu/EZlw_2KXH71DrtBlCKx9Gr8B8JAPpD8BHgSKlb1FQRQiTg?e=7ufjr1
 
 * Client Meeting Notes:
-https://livememphis-my.sharepoint.com/:w:/g/personal/nmosman_memphis_edu/EfYpQ5fJXXZDi6GG8-I7qSUB4-0LtRjT99K3ZuacOTAlmQ?e=kwOu2e
+https://livememphis-my.sharepoint.com/:w:/r/personal/nmosman_memphis_edu/Documents/4-9-2025%20Meeting%20Notes.docx?d=w5a93dc5fa2504613942f078a000cbe7a&csf=1&web=1&e=aUBctN
 
 * Sprint 3 Demo Day ppt:
  https://docs.google.com/presentation/d/1WJAErGWY4A57GtHuTaIDCBTBjq8lHj1J-tyWdWbYcH4/edit?usp=sharing
