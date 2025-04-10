@@ -48,6 +48,7 @@ def process_images(folder_path):
                 "confidence": round(file_conf * 100)  # store as percentage integer
             })
             last_file = img_path
+            print(f"{os.path.basename(img_path)} says: {label}; conf: {round(file_conf * 100)}")
         except Exception as e:
             print(f"Error processing {img_path}: {e}")
 

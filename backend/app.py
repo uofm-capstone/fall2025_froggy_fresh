@@ -37,7 +37,7 @@ def upload_and_process():
     folder_path = data.get('folderPath')
     if folder_path:
         results = process_images.process_images(folder_path)
-        print(results)
+        # print(results)
         return jsonify({"message": "FolderPath received", "folderPath": folder_path}), 200
     else:
         logging.warning("folder path not provided??")
