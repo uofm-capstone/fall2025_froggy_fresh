@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import BackButton from "./BackButton";
-import JSZip from "jszip";
+const { ipcRenderer } = window.require("electron");
 
 // Define SortViewProps interface
 interface SortViewProps {
@@ -31,70 +31,34 @@ export default function SortView({ onBack, onSortComplete }: SortViewProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Handle browse button click
-  const handleBrowse = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  };
-
-  // Handle folder selection
-  const handleFolderSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files && files.length > 0) {
-      setFolderPath(files[0].webkitRelativePath.split("/")[0]);
+  const handleBrowse = async () => {
+    const newFolderPath = await ipcRenderer.invoke('open-directory-dialog');
+    if (newFolderPath) {
+      console.log('Selected folder:', newFolderPath);
+      setFolderPath(newFolderPath);
       setIsFolderSelected(true);
-      // Reset stats when a new folder is selected
-      setStats(null);
+    } else {
+      console.log('No folder selected');
+      setIsFolderSelected(false);
     }
   };
 
-  // Handle start button click: zip folder and send to backend
+  // Handle start button click: send path of input folder to backend
   const handleStart = async () => {
-    if (fileInputRef.current?.files) {
-      const zip = new JSZip();
-      // Add all files preserving folder structure
-      Array.from(fileInputRef.current.files).forEach((file) => {
-        zip.file(file.webkitRelativePath, file);
-      });
-
-      try {
-        // Generate zip blob
-        const zipBlob = await zip.generateAsync({ type: "blob" });
-
-        // Create form data to send to backend
-        const formData = new FormData();
-        formData.append("file", zipBlob, "uploaded_folder.zip");
-
-        const response = await fetch("http://127.0.0.1:5000/upload", {
-          method: "POST",
-          body: formData,
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          console.log("Upload successful:", data);
-          setStats(data);
-        } else {
-          console.error("Upload failed");
-        }
-      } catch (error) {
-        console.error("Error during zipping or upload:", error);
-      }
-    }
+    console.log(`handleStart says folder path '${folderPath}'`);
+    const response = await fetch("http://127.0.0.1:5000/upload", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        folderPath: folderPath,
+      })
+    });
   };
 
   return (
     <div>
-      <input
-        type="file"
-        ref={fileInputRef}
-        multiple
-        // Use a spread and cast to any to bypass TS type checking for non-standard attributes
-        {...({ webkitdirectory: "true", directory: "true" } as any)}
-        onChange={handleFolderSelect}
-        style={{ display: "none" }}
-      />
-      
       <div className="mb-8">
         <div className="flex items-center gap-4 mb-8">
           <BackButton onClick={onBack} />

@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 
 let mainWindow;
@@ -9,6 +9,7 @@ app.whenReady().then(() => {
     height: 800,
     webPreferences: {
       nodeIntegration: true,
+      contextIsolation: false,
     }
   });
 
@@ -19,6 +20,14 @@ app.whenReady().then(() => {
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
+});
+
+// Handle the folder picker request
+ipcMain.handle('open-directory-dialog', async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ['openDirectory'],
+  });
+  return result.filePaths[0] || null; // Return folder path or null if canceled
 });
 
 app.on('window-all-closed', () => {

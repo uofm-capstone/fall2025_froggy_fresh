@@ -4,3 +4,5 @@ node_modules
 backend/venv
 backend/frogs
 backend/filtered
+backend/__pycache__
+backend/runs.json
