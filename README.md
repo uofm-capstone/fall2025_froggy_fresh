@@ -19,9 +19,12 @@
 This project aims to develop an automated deep learning system that detects frogs in image captured from frog traps.
 By streamlining data collection and analysis (along with more possibilities), the tool will help researchers at Memphis Zoo monitor frog behavior and populations more efficiently.
 
-## How To Run
+## Instructions
 
-1. Download and install the [UV package manager](https://docs.astral.sh/uv/)
-2. Set up a venv with UV `uv venv --python 3.10` (note we are locked to 3.10.16 because of tensorflow and this is why `uv` is really helpful) and then you can activate it by running `./.venv/bin/activate` (you might have to give yourself permissions to run it with `chmod` or its Windows equivalent)
-3. Use UV to install dependencies (read the associated documentation on how to do so, you can find the deps in `pyproject.toml`)
-4. To run the Electron side, run `npm install && npm run dev`
+1. Check if npm is installed with `npm --version` and if it is not installed, install it from package manager or the website
+2. Download and install the [UV package manager](https://docs.astral.sh/uv/) from package manager or their website. Make sure UV is in your Path.
+3. Clone the repository from the github
+4. cd into the repository
+5. run `npm install` to install javascript dependencies
+6. run `uv sync` to install python dependencies
+7. to launch the application run `npm run dev`
