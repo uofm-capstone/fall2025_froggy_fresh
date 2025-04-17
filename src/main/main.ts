@@ -1,40 +1,112 @@
-import { app, BrowserWindow } from 'electron';
-import * as path from 'path';
+import { ChildProcess } from "child_process";
+import { IpcMainEvent } from "electron";
 
-let mainWindow: BrowserWindow;
+import { app, BrowserWindow, ipcMain, dialog } from "electron";
+import os from "os";
+import path from "path";
+import { spawn } from "child_process";
+
+const isPackaged = app.isPackaged;
+
+const resourcesFolder = isPackaged ? process.resourcesPath : path.join(__dirname, "..");
+const pythonPath =
+  os.platform() === "win32"
+    ? path.resolve(resourcesFolder, "backend", ".venv", "Scripts", "python.exe")
+    : path.resolve(resourcesFolder, "backend", ".venv", "bin", "python");
+
+let mainWindow;
 
 app.whenReady().then(() => {
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1200,
+    height: 800,
     webPreferences: {
-      preload: path.join(__dirname, '../preload/index.js'),
       nodeIntegration: true,
       contextIsolation: false,
-      webSecurity: true
     },
-    backgroundColor: '#ffffff',
   });
 
-  // In development, load from Vite's dev server
-  if (process.env.NODE_ENV === 'development') {
-    mainWindow.loadURL('http://localhost:5173');
-    mainWindow.webContents.openDevTools();
+  // Load React app from Vite's dev server or built files
+  if (!isPackaged) {
+    const devServerURL = "http://localhost:5173"; // Change this if your Vite dev server uses a different port
+    mainWindow.loadURL(devServerURL);
   } else {
-    // In production, load the built files
-    mainWindow.loadFile(path.join(__dirname, '../renderer/dist/index.html'));
+    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
   }
-
-  // Handle theme changes
-  mainWindow.webContents.on('dom-ready', () => {
-    mainWindow.webContents.executeJavaScript(`
-      document.documentElement.classList.add('light');
-    `);
+  mainWindow.on("closed", () => {
+    mainWindow = null;
   });
 });
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
+// Handle the folder picker request
+ipcMain.handle("open-directory-dialog", async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ["openDirectory"],
+  });
+  return result.filePaths[0] || null; // Return folder path or null if canceled
+});
+
+let backendProcess: ChildProcess;
+
+app.on("ready", () => {
+  if (isPackaged) {
+    const appScriptPath = path.join(resourcesFolder, "backend", "app.py");
+  
+    backendProcess = spawn(pythonPath, ['-u', appScriptPath]);
+  
+    // Handle backend output
+    backendProcess.stdout?.on('data', (data) => {
+      console.log(`Backend: ${data.toString()}`);
+    });
+  
+    backendProcess.stderr?.on('data', (error) => {
+      console.error(`Backend error: ${error.toString()}`);
+    });
+  
+    backendProcess.on('close', (code) => {
+      console.log(`Backend process exited with code ${code}`);
+    });
+  }
+})
+
+ipcMain.on("run-process-images", (event: IpcMainEvent, folderPath: string) => {
+  const processImagesScriptPath = path.resolve(resourcesFolder, "backend", "process_images.py");
+  const modelPath = path.resolve(resourcesFolder, "backend", "frog_detector.h5");
+  const processImagesProcess = spawn(pythonPath, ["-u", processImagesScriptPath, modelPath, folderPath], {
+    cwd: path.resolve(resourcesFolder, "backend"),
+  });
+
+  // send stdout to event listener in SortView.tsx
+  processImagesProcess.stdout.on("data", (data: Buffer) => {
+    const output = data.toString(); // Convert Buffer to string
+    console.log(`got: ${output}`);
+    event.sender.send("process-images-output", output); // Send to renderer
+  });
+
+  // Capture and send stderr data to the renderer process
+  processImagesProcess.stderr.on("data", (error: Buffer) => {
+    const errorMessage = error.toString(); // Convert Buffer to string
+    console.error(`stderr: ${errorMessage}`);
+    event.sender.send("process-images-error", errorMessage); // Send to renderer
+  });
+
+  // Notify renderer process when the Python script finishes
+  processImagesProcess.on("close", (code: string) => {
+    console.log(`Python process exited with code ${code}`);
+    event.sender.send("process-images-done", code); // Send exit code to renderer
+  });
+});
+
+app.on('before-quit', () => {
+  if (isPackaged) {
+    if (backendProcess) {
+      backendProcess.kill(); // Clean up the backend process when the app exits
+    }
+  }
+});
+
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
     app.quit();
   }
 });
