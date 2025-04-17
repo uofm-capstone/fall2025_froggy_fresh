@@ -3,6 +3,14 @@ const os = require("os");
 const path = require("path");
 const { spawn } = require("child_process");
 
+const isPackaged = app.isPackaged;
+
+const resourcesFolder = isPackaged ? process.resourcesPath : path.join(__dirname, "..");
+const pythonPath =
+  os.platform() === "win32"
+    ? path.resolve(resourcesFolder, "backend", ".venv", "Scripts", "python.exe")
+    : path.resolve(resourcesFolder, "backend", ".venv", "bin", "python");
+
 let mainWindow;
 
 app.whenReady().then(() => {
@@ -16,9 +24,12 @@ app.whenReady().then(() => {
   });
 
   // Load React app from Vite's dev server or built files
-  const devServerURL = "http://localhost:5173"; // Change this if your Vite dev server uses a different port
-  mainWindow.loadURL(devServerURL);
-
+  if (!isPackaged) {
+    const devServerURL = "http://localhost:5173"; // Change this if your Vite dev server uses a different port
+    mainWindow.loadURL(devServerURL);
+  } else {
+    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+  }
   mainWindow.on("closed", () => {
     mainWindow = null;
   });
@@ -32,17 +43,34 @@ ipcMain.handle("open-directory-dialog", async () => {
   return result.filePaths[0] || null; // Return folder path or null if canceled
 });
 
-ipcMain.on("run-process-images", (event, folderPath) => {
-  const pythonPath =
-    os.platform() === "win32"
-      // ? path.join(".", ".venv", "Scripts", "python")
-      ? path.resolve(__dirname, "..", ".venv", "Scripts", "python")
-      : path.resolve(__dirname, "..", ".venv", "bin", "python");
-      // : path.join(".", ".venv", "bin", "python");
+let backendProcess;
 
-  const processImagesScriptPath = path.resolve(__dirname, "..", "backend", "process_images.py");
-  const processImagesProcess = spawn(pythonPath, ["-u", processImagesScriptPath, folderPath], {
-    cwd: path.resolve(__dirname, ".."),
+app.on("ready", () => {
+  if (isPackaged) {
+    const appScriptPath = path.join(resourcesFolder, "backend", "app.py");
+  
+    backendProcess = spawn(pythonPath, ['-u', appScriptPath]);
+  
+    // Handle backend output
+    backendProcess.stdout.on('data', (data) => {
+      console.log(`Backend: ${data.toString()}`);
+    });
+  
+    backendProcess.stderr.on('data', (error) => {
+      console.error(`Backend error: ${error.toString()}`);
+    });
+  
+    backendProcess.on('close', (code) => {
+      console.log(`Backend process exited with code ${code}`);
+    });
+  }
+})
+
+ipcMain.on("run-process-images", (event, folderPath) => {
+  const processImagesScriptPath = path.resolve(resourcesFolder, "backend", "process_images.py");
+  const modelPath = path.resolve(resourcesFolder, "backend", "frog_detector.h5");
+  const processImagesProcess = spawn(pythonPath, ["-u", processImagesScriptPath, modelPath, folderPath], {
+    cwd: path.resolve(resourcesFolder, "backend"),
   });
 
   // send stdout to event listener in SortView.tsx
@@ -64,6 +92,14 @@ ipcMain.on("run-process-images", (event, folderPath) => {
     console.log(`Python process exited with code ${code}`);
     event.sender.send("process-images-done", code); // Send exit code to renderer
   });
+});
+
+app.on('before-quit', () => {
+  if (isPackaged) {
+    if (backendProcess) {
+      backendProcess.kill(); // Clean up the backend process when the app exits
+    }
+  }
 });
 
 app.on("window-all-closed", () => {

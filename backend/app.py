@@ -19,29 +19,10 @@ CORS(app)  # <-- enable CORS for all routes
 # Define the backend base directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Load the trained model from the backend directory
-model_path = os.path.join(BASE_DIR, "frog_detector.h5")
-model = load_model(model_path)
-
-# Directories for classification (output folders) within the backend directory
-FROGS_FOLDER = os.path.join(BASE_DIR, "frogs")
-FILTERED_FOLDER = os.path.join(BASE_DIR, "filtered")
-
-# Create destination folders if they don't exist
-os.makedirs(FROGS_FOLDER, exist_ok=True)
-os.makedirs(FILTERED_FOLDER, exist_ok=True)
-
-@app.route('/upload', methods=['POST'])
-def upload_and_process():
-    data = request.json
-    folder_path = data.get('folderPath')
-    if folder_path:
-        results = process_images.process_images(folder_path)
-        # print(results)
-        return jsonify({"message": "FolderPath received", "folderPath": folder_path}), 200
-    else:
-        logging.warning("folder path not provided??")
-        return jsonify({"error": "FolderPath not provided"}), 400
+@app.route('/getruns', methods=['GET'])
+def get_runs():
+    runs_folder = os.path.join(os.path.expanduser("~"), "Documents", "Leapfrog", "runs")
+    
 
 @app.route('/results', methods=['GET'])
 def get_results():

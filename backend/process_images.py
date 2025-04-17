@@ -6,8 +6,8 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 from datetime import datetime
 
-def process_images(folder_path):
-    model = load_model(os.path.join(".", "backend", "frog_detector.h5"))
+def process_images(folder_path, model_path):
+    model = load_model(model_path)
 
     processed_files = []
 
@@ -69,9 +69,9 @@ def process_images(folder_path):
     total_processed = frog_count + not_frog_count
     average_confidence = round((confidence_total / total_processed) * 100) if total_processed > 0 else 0
 
-    run_date = datetime.now().strftime("%Y-%m-%dT%H_%M_%S") # 2025-04-10T17_54_30 (ISO 8601)
+    run_time = datetime.now().strftime("%Y-%m-%dT%H_%M_%S") # 2025-04-10T17_54_30 (ISO 8601)
     stats = {
-        "runDate": run_date,
+        "runDate": run_time,
         "frogs": frog_count,
         "notFrogs": not_frog_count,
         "averageConfidence": average_confidence,
@@ -80,23 +80,16 @@ def process_images(folder_path):
     }
 
     # Save this run’s stats to a file for later retrieval.
-    runs_dir = os.path.join(".", "runs")
-    os.makedirs(runs_dir, exist_ok=True)
-    new_run_path = os.path.join(runs_dir, f"run_{run_date}.json")
+    runs_folder = os.path.join(os.path.expanduser("~"), "Documents", "Leapfrog", "runs")
+    os.makedirs(runs_folder, exist_ok=True) # creates parent folders if they dont exist
+
+    new_run_path = os.path.join(runs_folder, f"{run_time}.json")
     with open(new_run_path, "w") as f:
         json.dump(stats, f)
-    # runs_file = os.path.join(".", "backend", "runs.json")
-    # try:
-    #     with open(runs_file, "r") as f:
-    #         runs = json.load(f)
-    # except Exception:
-    #     runs = []
-    # runs.append(stats)
-    # with open(runs_file, "w") as f:
-    #     json.dump(runs, f)
 
     return stats
 
 if __name__ == "__main__":
-    folder_path = sys.argv[1]
-    process_images(folder_path)
+    model_path = sys.argv[1]
+    folder_path = sys.argv[2]
+    process_images(folder_path, model_path)
