@@ -50,6 +50,7 @@ export default function Home() {
           <SortView
             onBack={() => navigateTo("dashboard")}
             onSortComplete={handleSortComplete}
+            onResultsClick={() => navigateTo("results")}
           />
         </div>
       )}
