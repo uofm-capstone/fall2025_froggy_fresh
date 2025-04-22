@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import FrogChart from "./FrogChart";
+import ModelManager from "./ModelManager";
 
 interface DashboardProps {
   onSortClick: () => void;
@@ -30,6 +31,12 @@ export default function Dashboard({ onSortClick, onResultsClick }: DashboardProp
         >
           Results
         </button>
+      </div>
+
+      {/* Model Manager Section */}
+      <div className="w-full max-w-4xl mb-12">
+        <h2 className="text-2xl font-semibold text-center mb-6 text-[var(--apple-text)]">Model Management</h2>
+        <ModelManager />
       </div>
 
       {/* Chart section */}
