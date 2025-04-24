@@ -44,15 +44,16 @@ def process_images(folder_path, model_path):
             confidence_total += file_conf
             last_file = img_path
 
-            current_file_data = {
+            current_image_data = {
                 "name": os.path.basename(img_path),
-                "absolutePath": img_path,
+                "imagePath": img_path,
                 "classification": label,
-                "confidence": round(file_conf * 100)  # store as percentage integer
+                "confidence": round(file_conf * 100), # store as percentage integer
+                "override": False,
             }
-            processed_files.append(current_file_data)
+            processed_files.append(current_image_data)
             update_data = {
-                "currentFile": current_file_data,
+                "currentFile": current_image_data,
                 "progress": {
                     "frogs": frog_count,
                     "notFrogs": not_frog_count,
@@ -84,6 +85,7 @@ def process_images(folder_path, model_path):
     os.makedirs(runs_folder, exist_ok=True) # creates parent folders if they dont exist
 
     new_run_path = os.path.join(runs_folder, f"{run_time}.json")
+    stats["filePath"] = new_run_path
     with open(new_run_path, "w") as f:
         json.dump(stats, f)
 
