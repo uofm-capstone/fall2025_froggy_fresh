@@ -8,3 +8,4 @@ backend/__pycache__
 backend/runs.json
 dist/
 out/
+electron/main.js

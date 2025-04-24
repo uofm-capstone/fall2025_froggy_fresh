@@ -19,6 +19,8 @@
 This project aims to develop an automated deep learning system that detects frogs in image captured from frog traps.
 By streamlining data collection and analysis (along with more possibilities), the tool will help researchers at Memphis Zoo monitor frog behavior and populations more efficiently.
 
+Results are stored in your Documents folder.
+
 ## Instructions
 
 ### Running development version
@@ -29,14 +31,13 @@ By streamlining data collection and analysis (along with more possibilities), th
 4. cd into the repository
 5. run `npm install` to install javascript dependencies
 6. run `uv sync --project ./backend` to create a `./backend/.venv` folder and install python dependencies
-7. to launch the application run `npm run dev`
+7. run `npm run build` to compile `./src/main/main.ts` into `./electron/main.js` (also build the static vite `.tsx` for packaging)
+8. to launch the application run `npm run dev`
 
 ### Building Electron application to binary
-
-This is hard and not fun.
 
 You can only compile an application for the operating system you're currently using! This means if you want to compile for Windows you need to set this up on Windows (and not WSL).
 
 1. Make sure you've followed the development version instructions so you've `npm install`ed and `uv sync --project ./backend`ed.
-2. Run `npm run build` to generate static Vite files in a `./dist` folder.
+2. Run `npm run build` to generate `main.ts` and static Vite files in a `./dist` folder.
 3. Run `npm run package` to try to package the application into `./out/leapfrog-OPERATING_SYSTEM/leapfrog-app` (`.exe` on windows)

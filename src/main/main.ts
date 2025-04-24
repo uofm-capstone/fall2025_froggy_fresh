@@ -1,9 +1,11 @@
-import { ChildProcess } from "child_process";
-import { IpcMainEvent } from "electron";
+// You must run `npm run build` to compile this into `electron/main.js`
+// before running `npm run dev` or `npm run package`
 
-import { app, BrowserWindow, ipcMain, dialog } from "electron";
-import os from "os";
-import path from "path";
+import { IpcMainEvent, IpcMainInvokeEvent } from "electron";
+import { app, BrowserWindow, ipcMain, dialog, shell } from "electron";
+import * as os from "os";
+import * as path from "path";
+import { promises as fs } from "fs";
 import { spawn } from "child_process";
 
 const isPackaged = app.isPackaged;
@@ -46,26 +48,118 @@ ipcMain.handle("open-directory-dialog", async () => {
   return result.filePaths[0] || null; // Return folder path or null if canceled
 });
 
-let backendProcess: ChildProcess;
+ipcMain.on("open-folder", (event: IpcMainEvent, path: string, showInFolder: boolean) => {
+  if (showInFolder) {
+    shell.showItemInFolder(path);
+  } else {
+    shell.openPath(path);
+  }
+})
 
-app.on("ready", () => {
-  if (isPackaged) {
-    const appScriptPath = path.join(resourcesFolder, "backend", "app.py");
+// Handle listing all runs from Documents/Leapfrog/runs dir
+ipcMain.handle("list-runs", async () => {
+  try {
+    const runsFolder = path.join(os.homedir(), "Documents", "Leapfrog", "runs");
+    // make runsFolder if it doesn't exist
+    await fs.mkdir(runsFolder, { recursive: true });
+    const filenames: string[] = await fs.readdir(runsFolder);
+
+    // extract date, time, and filePath from each filename in runs folder
+    const processedRuns = filenames
+      .filter((filename) => filename.endsWith(".json"))
+      .map((filename) => {
+        const match = filename.match(/^(\d{4}-\d{2}-\d{2})T(\d{2})_(\d{2})_(\d{2})\.json$/);
+        if (!match) return null;
   
-    backendProcess = spawn(pythonPath, ['-u', appScriptPath]);
+        const [_, date, hour, minute] = match; // Extract date and time components
   
-    // Handle backend output
-    backendProcess.stdout?.on('data', (data) => {
-      console.log(`Backend: ${data.toString()}`);
-    });
+        // Convert hour to US time format (AM/PM)
+        let hourNumber = parseInt(hour, 10);
+        const isPM = hourNumber >= 12;
+        if (hourNumber > 12) hourNumber -= 12;
+        if (hourNumber === 0) hourNumber = 12;
   
-    backendProcess.stderr?.on('data', (error) => {
-      console.error(`Backend error: ${error.toString()}`);
-    });
+        const formattedTime = `${hourNumber}:${minute} ${isPM ? "PM" : "AM"}`;
   
-    backendProcess.on('close', (code) => {
-      console.log(`Backend process exited with code ${code}`);
-    });
+        // Construct the full file path
+        const filePath = path.join(runsFolder, filename);
+  
+        return { date, time: formattedTime, filePath };
+      })
+      .filter((entry) => entry !== null) as { date: string; time: string; filePath: string }[];
+  
+    return processedRuns;
+  } catch (error) {
+    console.error("Error processing runs:", error);
+    return [];
+  }
+});
+
+interface ImageResultData {
+  name: string;
+  imagePath: string;
+  classification: "FROG" | "NOT FROG";
+  confidence: number;
+  override: boolean;
+}
+
+function isValidImageResult(result: any): result is ImageResultData {
+  return (
+    typeof result.imagePath === "string" &&
+    typeof result.name === "string" &&
+    (result.classification === "FROG" || result.classification === "NOT FROG") &&
+    typeof result.confidence === "number" &&
+    typeof result.override === "boolean"
+  );
+}
+
+interface RunData {
+  filePath: string;
+  runDate: string;
+  frogs: number;
+  notFrogs: number;
+  averageConfidence: number;
+  results: Array<ImageResultData>;
+}
+
+function isValidRunData(data: any): data is RunData {
+  return (
+    typeof data.runDate === "string" &&
+    typeof data.frogs === "number" &&
+    typeof data.notFrogs === "number" &&
+    typeof data.filePath === "string" &&
+    Array.isArray(data.results) &&
+    data.results.every(isValidImageResult)
+  );
+}
+
+function sortRunDataResultsByConfidence(data: Array<ImageResultData>): Array<ImageResultData> {
+  return data.sort((a, b) => a.confidence - b.confidence);
+}
+
+ipcMain.handle("get-run-data", async (event: IpcMainInvokeEvent, runResultPath: string): Promise<RunData | null> => {
+  try {
+    const rawData = await fs.readFile(runResultPath, "utf-8");
+    const data = JSON.parse(rawData);
+
+    if (!isValidRunData(data)) {
+      console.error("Invalid RunData structure:", data);
+      return null;
+    }
+    data.results = sortRunDataResultsByConfidence(data.results);
+    return data;
+  } catch (error) {
+    console.error("Error reading or parsing file:", error);
+    return null;
+  }
+});
+
+ipcMain.handle("get-raw-image-data", async (event: IpcMainInvokeEvent, imagePath: string) => {
+  try {
+    const rawImageData = await fs.readFile(imagePath);
+    return { success: true, data: rawImageData.toString("base64") };
+  } catch (err) {
+    return { success: false, message: "unable to read image" };
   }
 })
 
@@ -95,14 +189,6 @@ ipcMain.on("run-process-images", (event: IpcMainEvent, folderPath: string) => {
     console.log(`Python process exited with code ${code}`);
     event.sender.send("process-images-done", code); // Send exit code to renderer
   });
-});
-
-app.on('before-quit', () => {
-  if (isPackaged) {
-    if (backendProcess) {
-      backendProcess.kill(); // Clean up the backend process when the app exits
-    }
-  }
 });
 
 app.on("window-all-closed", () => {

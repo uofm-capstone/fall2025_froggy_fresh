@@ -49,6 +49,7 @@ export default function Home() {
         <div className="w-full max-w-none">
           <SortView
             onBack={() => navigateTo("dashboard")}
+            onResults={() => navigateTo("results")}
             onSortComplete={handleSortComplete}
           />
         </div>

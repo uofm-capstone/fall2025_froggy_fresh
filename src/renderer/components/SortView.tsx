@@ -6,6 +6,7 @@ import { IpcRendererEvent } from "electron";
 // Define SortViewProps interface
 interface SortViewProps {
     onBack: () => void;
+    onResults: () => void;
     onSortComplete: (result: {
         frogs: number;
         notFrogs: number;
@@ -16,7 +17,7 @@ interface SortViewProps {
     }) => void;
 }
 
-export default function SortView({ onBack, onSortComplete }: SortViewProps) {
+export default function SortView({ onBack, onResults, onSortComplete }: SortViewProps) {
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [folderPath, setFolderPath] = useState<string>("");
   const [isFolderSelected, setIsFolderSelected] = useState<boolean>(false);
@@ -46,13 +47,13 @@ export default function SortView({ onBack, onSortComplete }: SortViewProps) {
   type FileData = {
     name: string; // The base name of the file
     absolutePath: string; // The full path to the file
-    classification: string; // The classification result (e.g., "frog", "not frog")
+    classification: string; // The classification result (e.g., "FROG" | "NOT FROG")
     confidence: number; // Confidence level as a percentage (integer)
   };
   
   type ProgressData = {
-    frogs: number; // Count of files classified as "frogs"
-    notFrogs: number; // Count of files classified as "not frogs"
+    frogs: number; // Count of files classified as "FROG"
+    notFrogs: number; // Count of files classified as "NOT FROG"
     averageConfidence: number; // Average confidence across processed files
     processedImageCount: number; // Number of images processed so far
     totalImageCount: number; // Total number of images to process
@@ -102,18 +103,6 @@ export default function SortView({ onBack, onSortComplete }: SortViewProps) {
     };    
 
     ipcRenderer.on("process-images-output", updateOutput);
-    
-    // old code
-    // const response = await fetch("http://127.0.0.1:5000/upload", {
-    //   method: "POST",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
-    //   body: JSON.stringify({
-    //     folderPath: folderPath,
-    //   })
-    // });
-
   };
 
   // Ensure cleanup when SortView unmounts
@@ -223,8 +212,8 @@ export default function SortView({ onBack, onSortComplete }: SortViewProps) {
               </div>
             </div>
 
-            <button className="apple-button-secondary w-full" disabled={!isFolderSelected}>
-              Open in folder
+            <button className="apple-button-secondary w-full" onClick={onResults}>
+              See results
             </button>
           </div>
         </div>

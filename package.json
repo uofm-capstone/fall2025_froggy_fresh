@@ -1,14 +1,14 @@
 {
   "name": "leapfrog-app",
   "version": "1.0.0",
-  "main": "electron/index.js",
+  "main": "electron/main.js",
 "scripts": {
   "test": "echo \"Error: no test specified\" && exit 1",
   "dev": "concurrently \"npm run dev:react\" \"npm run dev:electron\" \"npm run dev:backend\"",
   "dev:react": "vite",
-  "dev:electron": "cd electron && electronmon index.js --watch index.js,src/**/* --ignore '/backend/.*'",
+  "dev:electron": "cd electron && electronmon main.js --watch main.js,src/**/* --ignore '/backend/.*'",
   "dev:backend": "source backend/.venv/bin/activate && python -u backend/app.py",
-  "build": "vite build",
+  "build": "npx tsc src/main/main.ts --outDir electron --module CommonJS --target ESNext; vite build",
   "package": "electron-forge package",
   "make": "electron-forge make"
 },
