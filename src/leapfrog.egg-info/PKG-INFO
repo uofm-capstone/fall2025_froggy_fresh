@@ -1,0 +1,39 @@
+Metadata-Version: 2.4
+Name: leapfrog
+Version: 0.1.0
+Summary: Add your description here
+Requires-Python: <=3.10.16,>=3.9
+Description-Content-Type: text/markdown
+Requires-Dist: flask>=3.1.0
+Requires-Dist: flask-cors>=5.0.1
+Requires-Dist: numpy>=2.0.2
+Requires-Dist: pillow>=11.1.0
+Requires-Dist: tensorflow>=2.19.0
+
+# README
+
+## Team Leapfrog Spring Semester Documents
+
+* Timesheet:
+<https://docs.google.com/spreadsheets/d/1kc0mcMinUaesgds4kaM9AclEbhH363xrw8v5fDTNY8s/edit?usp=sharing>
+
+* Team Contract:
+<https://livememphis-my.sharepoint.com/:w:/g/personal/nmosman_memphis_edu/EZlw_2KXH71DrtBlCKx9Gr8B8JAPpD8BHgSKlb1FQRQiTg?e=7ufjr1>
+
+* Client Meeting Notes:
+<https://livememphis-my.sharepoint.com/:w:/r/personal/nmosman_memphis_edu/Documents/4-9-2025%20Meeting%20Notes.docx?d=w5a93dc5fa2504613942f078a000cbe7a&csf=1&web=1&e=aUBctN>
+
+* Sprint 3 Demo Day ppt:
+ <https://docs.google.com/presentation/d/1WJAErGWY4A57GtHuTaIDCBTBjq8lHj1J-tyWdWbYcH4/edit?usp=sharing>
+  
+## Frog Capture AI Recognizer
+
+This project aims to develop an automated deep learning system that detects frogs in image captured from frog traps.
+By streamlining data collection and analysis (along with more possibilities), the tool will help researchers at Memphis Zoo monitor frog behavior and populations more efficiently.
+
+## How To Run
+
+1. Download and install the [UV package manager](https://docs.astral.sh/uv/)
+2. Set up a venv with UV `uv venv --python 3.10` (note we are locked to 3.10.16 because of tensorflow and this is why `uv` is really helpful) and then you can activate it by running `./.venv/bin/activate` (you might have to give yourself permissions to run it with `chmod` or its Windows equivalent)
+3. Use UV to install dependencies (read the associated documentation on how to do so, you can find the deps in `pyproject.toml`)
+4. To run the Electron side, run `npm install && npm run dev`

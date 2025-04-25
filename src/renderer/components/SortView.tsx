@@ -1,24 +1,30 @@
+"use client";
+
 import React, { useState, useRef } from "react";
 import BackButton from "./BackButton";
 const { ipcRenderer } = window.require("electron");
 
 // Define SortViewProps interface
 interface SortViewProps {
-    onBack: () => void;
-    onSortComplete: (result: {
-        frogs: number;
-        notFrogs: number;
-        confidence: number;
-        files: any[];
-        totalFiles: string;
-        currentFile: string;
-    }) => void;
+  onBack: () => void;
+  onSortComplete: (result: {
+    frogs: number;
+    notFrogs: number;
+    confidence: number;
+    files: any[];
+    totalFiles: string;
+    currentFile: string;
+  }) => void;
+  onResultsClick: () => void;
 }
 
-export default function SortView({ onBack, onSortComplete }: SortViewProps) {
+export default function SortView({
+  onBack,
+  onSortComplete,
+  onResultsClick,
+}: SortViewProps) {
   const [folderPath, setFolderPath] = useState<string>("");
   const [isFolderSelected, setIsFolderSelected] = useState<boolean>(false);
-  // New state to store backend stats
   const [stats, setStats] = useState<{
     frogs: number;
     notFrogs: number;
@@ -32,13 +38,13 @@ export default function SortView({ onBack, onSortComplete }: SortViewProps) {
 
   // Handle browse button click
   const handleBrowse = async () => {
-    const newFolderPath = await ipcRenderer.invoke('open-directory-dialog');
+    const newFolderPath = await ipcRenderer.invoke("open-directory-dialog");
     if (newFolderPath) {
-      console.log('Selected folder:', newFolderPath);
+      console.log("Selected folder:", newFolderPath);
       setFolderPath(newFolderPath);
       setIsFolderSelected(true);
     } else {
-      console.log('No folder selected');
+      console.log("No folder selected");
       setIsFolderSelected(false);
     }
   };
@@ -46,15 +52,36 @@ export default function SortView({ onBack, onSortComplete }: SortViewProps) {
   // Handle start button click: send path of input folder to backend
   const handleStart = async () => {
     console.log(`handleStart says folder path '${folderPath}'`);
-    const response = await fetch("http://127.0.0.1:5000/upload", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        folderPath: folderPath,
-      })
-    });
+    try {
+      const response = await fetch("http://127.0.0.1:5000/upload", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ folderPath }),
+      });
+
+      if (!response.ok) {
+        console.error("Upload failed:", response.statusText);
+        return;
+      }
+
+      const data = await response.json();
+      const result = {
+        frogs: data.frogs,
+        notFrogs: data.notFrogs,
+        confidence: data.confidence,
+        files: data.files,
+        totalFiles: data.totalFiles,
+        currentFile: data.currentFile,
+      };
+
+      setStats(result);             // ← enables the View Results button
+      onSortComplete(result);       // ← bubble stats up if needed
+      // onResultsClick();          // ← uncomment to auto‑navigate immediately
+    } catch (err) {
+      console.error("Error during sort:", err);
+    }
   };
 
   return (
@@ -62,7 +89,9 @@ export default function SortView({ onBack, onSortComplete }: SortViewProps) {
       <div className="mb-8">
         <div className="flex items-center gap-4 mb-8">
           <BackButton onClick={onBack} />
-          <h2 className="text-3xl font-semibold text-[var(--apple-text)]">Sort</h2>
+          <h2 className="text-3xl font-semibold text-[var(--apple-text)]">
+            Sort
+          </h2>
         </div>
       </div>
 
@@ -77,7 +106,10 @@ export default function SortView({ onBack, onSortComplete }: SortViewProps) {
                 placeholder="Select folder"
                 readOnly
               />
-              <button onClick={handleBrowse} className="apple-button-secondary">
+              <button
+                onClick={handleBrowse}
+                className="apple-button-secondary"
+              >
                 Browse
               </button>
             </div>
@@ -93,7 +125,9 @@ export default function SortView({ onBack, onSortComplete }: SortViewProps) {
         </div>
 
         <div className="apple-card">
-          <h3 className="text-2xl font-bold text-[var(--apple-text)] mb-6">Stats</h3>
+          <h3 className="text-2xl font-bold text-[var(--apple-text)] mb-6">
+            Stats
+          </h3>
           <div className="flex flex-col h-full">
             <div className="flex justify-between items-center mb-6">
               <div className="flex gap-6">
@@ -101,20 +135,26 @@ export default function SortView({ onBack, onSortComplete }: SortViewProps) {
                   <div className="text-3xl font-bold text-[var(--apple-accent)]">
                     {stats ? stats.frogs : "-"}
                   </div>
-                  <div className="text-sm text-[var(--apple-text)] uppercase">FROGS</div>
+                  <div className="text-sm text-[var(--apple-text)] uppercase">
+                    FROGS
+                  </div>
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-[var(--apple-text)]">
                     {stats ? stats.notFrogs : "-"}
                   </div>
-                  <div className="text-sm text-[var(--apple-text)] uppercase">NOT FROG</div>
+                  <div className="text-sm text-[var(--apple-text)] uppercase">
+                    NOT FROG
+                  </div>
                 </div>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-[var(--apple-text)]">
                   {stats ? `${stats.confidence}%` : "-"}
                 </div>
-                <div className="text-sm text-[var(--apple-text)] uppercase">CONFIDENCE</div>
+                <div className="text-sm text-[var(--apple-text)] uppercase">
+                  CONFIDENCE
+                </div>
               </div>
             </div>
 
@@ -122,18 +162,31 @@ export default function SortView({ onBack, onSortComplete }: SortViewProps) {
               <div
                 className="h-2 bg-[var(--apple-accent)] rounded-full"
                 style={{ width: stats ? `${stats.confidence}%` : "0%" }}
-              ></div>
+              />
             </div>
 
             <div className="space-y-2 mb-6 min-h-[160px] flex items-center justify-center">
               <div className="text-[var(--apple-text-secondary)]">
-                {stats ? "Processing complete" : "Select a folder to begin sorting"}
+                {stats
+                  ? "Processing complete"
+                  : "Select a folder to begin sorting"}
               </div>
             </div>
 
-            <button className="apple-button-secondary w-full" disabled={!isFolderSelected}>
-              Open in folder
-            </button>
+            <div className="flex gap-4">
+              <button
+                className="apple-button-secondary w-full"
+                disabled={!isFolderSelected}
+              >
+                Open in folder
+              </button>
+              <button
+                className="apple-button-secondary w-full"
+                onClick={onResultsClick}
+              >
+                View Results
+              </button>
+            </div>
           </div>
         </div>
       </div>
