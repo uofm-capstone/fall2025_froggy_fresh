@@ -1,40 +1,198 @@
-import { app, BrowserWindow } from 'electron';
-import * as path from 'path';
+// You must run `npm run build` to compile this into `electron/main.js`
+// before running `npm run dev` or `npm run package`
 
-let mainWindow: BrowserWindow;
+import { IpcMainEvent, IpcMainInvokeEvent } from "electron";
+import { app, BrowserWindow, ipcMain, dialog, shell } from "electron";
+import * as os from "os";
+import * as path from "path";
+import { promises as fs } from "fs";
+import { spawn } from "child_process";
+
+const isPackaged = app.isPackaged;
+
+const resourcesFolder = isPackaged ? process.resourcesPath : path.join(__dirname, "..");
+const pythonPath =
+  os.platform() === "win32"
+    ? path.resolve(resourcesFolder, "backend", ".venv", "Scripts", "python.exe")
+    : path.resolve(resourcesFolder, "backend", ".venv", "bin", "python");
+
+let mainWindow;
 
 app.whenReady().then(() => {
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1200,
+    height: 800,
     webPreferences: {
-      preload: path.join(__dirname, '../preload/index.js'),
       nodeIntegration: true,
       contextIsolation: false,
-      webSecurity: true
     },
-    backgroundColor: '#ffffff',
   });
 
-  // In development, load from Vite's dev server
-  if (process.env.NODE_ENV === 'development') {
-    mainWindow.loadURL('http://localhost:5173');
-    mainWindow.webContents.openDevTools();
+  // Load React app from Vite's dev server or built files
+  if (!isPackaged) {
+    const devServerURL = "http://localhost:5173"; // Change this if your Vite dev server uses a different port
+    mainWindow.loadURL(devServerURL);
   } else {
-    // In production, load the built files
-    mainWindow.loadFile(path.join(__dirname, '../renderer/dist/index.html'));
+    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
   }
-
-  // Handle theme changes
-  mainWindow.webContents.on('dom-ready', () => {
-    mainWindow.webContents.executeJavaScript(`
-      document.documentElement.classList.add('light');
-    `);
+  mainWindow.on("closed", () => {
+    mainWindow = null;
   });
 });
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
+// Handle the folder picker request
+ipcMain.handle("open-directory-dialog", async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ["openDirectory"],
+  });
+  return result.filePaths[0] || null; // Return folder path or null if canceled
+});
+
+ipcMain.on("open-folder", (event: IpcMainEvent, path: string, showInFolder: boolean) => {
+  if (showInFolder) {
+    shell.showItemInFolder(path);
+  } else {
+    shell.openPath(path);
+  }
+})
+
+// Handle listing all runs from Documents/Leapfrog/runs dir
+ipcMain.handle("list-runs", async () => {
+  try {
+    const runsFolder = path.join(os.homedir(), "Documents", "Leapfrog", "runs");
+    // make runsFolder if it doesn't exist
+    await fs.mkdir(runsFolder, { recursive: true });
+    const filenames: string[] = await fs.readdir(runsFolder);
+
+    // extract date, time, and filePath from each filename in runs folder
+    const processedRuns = filenames
+      .filter((filename) => filename.endsWith(".json"))
+      .map((filename) => {
+        const match = filename.match(/^(\d{4}-\d{2}-\d{2})T(\d{2})_(\d{2})_(\d{2})\.json$/);
+        if (!match) return null;
+  
+        const [_, date, hour, minute] = match; // Extract date and time components
+  
+        // Convert hour to US time format (AM/PM)
+        let hourNumber = parseInt(hour, 10);
+        const isPM = hourNumber >= 12;
+        if (hourNumber > 12) hourNumber -= 12;
+        if (hourNumber === 0) hourNumber = 12;
+  
+        const formattedTime = `${hourNumber}:${minute} ${isPM ? "PM" : "AM"}`;
+  
+        // Construct the full file path
+        const filePath = path.join(runsFolder, filename);
+  
+        return { date, time: formattedTime, filePath };
+      })
+      .filter((entry) => entry !== null) as { date: string; time: string; filePath: string }[];
+  
+    return processedRuns;
+  } catch (error) {
+    console.error("Error processing runs:", error);
+    return [];
+  }
+});
+
+interface ImageResultData {
+  name: string;
+  imagePath: string;
+  classification: "FROG" | "NOT FROG";
+  confidence: number;
+  override: boolean;
+}
+
+function isValidImageResult(result: any): result is ImageResultData {
+  return (
+    typeof result.imagePath === "string" &&
+    typeof result.name === "string" &&
+    (result.classification === "FROG" || result.classification === "NOT FROG") &&
+    typeof result.confidence === "number" &&
+    typeof result.override === "boolean"
+  );
+}
+
+interface RunData {
+  filePath: string;
+  runDate: string;
+  frogs: number;
+  notFrogs: number;
+  averageConfidence: number;
+  results: Array<ImageResultData>;
+}
+
+function isValidRunData(data: any): data is RunData {
+  return (
+    typeof data.runDate === "string" &&
+    typeof data.frogs === "number" &&
+    typeof data.notFrogs === "number" &&
+    typeof data.filePath === "string" &&
+    Array.isArray(data.results) &&
+    data.results.every(isValidImageResult)
+  );
+}
+
+function sortRunDataResultsByConfidence(data: Array<ImageResultData>): Array<ImageResultData> {
+  return data.sort((a, b) => a.confidence - b.confidence);
+}
+
+ipcMain.handle("get-run-data", async (event: IpcMainInvokeEvent, runResultPath: string): Promise<RunData | null> => {
+  try {
+    const rawData = await fs.readFile(runResultPath, "utf-8");
+    const data = JSON.parse(rawData);
+
+    if (!isValidRunData(data)) {
+      console.error("Invalid RunData structure:", data);
+      return null;
+    }
+    data.results = sortRunDataResultsByConfidence(data.results);
+    return data;
+  } catch (error) {
+    console.error("Error reading or parsing file:", error);
+    return null;
+  }
+});
+
+ipcMain.handle("get-raw-image-data", async (event: IpcMainInvokeEvent, imagePath: string) => {
+  try {
+    const rawImageData = await fs.readFile(imagePath);
+    return { success: true, data: rawImageData.toString("base64") };
+  } catch (err) {
+    return { success: false, message: "unable to read image" };
+  }
+})
+
+ipcMain.on("run-process-images", (event: IpcMainEvent, folderPath: string) => {
+  const processImagesScriptPath = path.resolve(resourcesFolder, "backend", "process_images.py");
+  const modelPath = path.resolve(resourcesFolder, "backend", "frog_detector.h5");
+  const processImagesProcess = spawn(pythonPath, ["-u", processImagesScriptPath, modelPath, folderPath], {
+    cwd: path.resolve(resourcesFolder, "backend"),
+  });
+
+  // send stdout to event listener in SortView.tsx
+  processImagesProcess.stdout.on("data", (data: Buffer) => {
+    const output = data.toString(); // Convert Buffer to string
+    console.log(`got: ${output}`);
+    event.sender.send("process-images-output", output); // Send to renderer
+  });
+
+  // Capture and send stderr data to the renderer process
+  processImagesProcess.stderr.on("data", (error: Buffer) => {
+    const errorMessage = error.toString(); // Convert Buffer to string
+    console.error(`stderr: ${errorMessage}`);
+    event.sender.send("process-images-error", errorMessage); // Send to renderer
+  });
+
+  // Notify renderer process when the Python script finishes
+  processImagesProcess.on("close", (code: string) => {
+    console.log(`Python process exited with code ${code}`);
+    event.sender.send("process-images-done", code); // Send exit code to renderer
+  });
+});
+
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
     app.quit();
   }
 });

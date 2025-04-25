@@ -1,17 +1,18 @@
 import os
+import sys
 import json
 import numpy as np
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 from datetime import datetime
 
-def process_images(folder_path):
-    model = load_model(os.path.join(".", "backend", "frog_detector.h5"))
+def process_images(folder_path, model_path):
+    model = load_model(model_path)
 
     processed_files = []
 
     image_files = [os.path.join(folder_path, f) for f in os.listdir(folder_path) if f.lower().endswith(".jpg")]
-
+    
     # Initialize stats counters
     frog_count = 0
     not_frog_count = 0
@@ -41,40 +42,56 @@ def process_images(folder_path):
                 file_conf = 1 - prediction
 
             confidence_total += file_conf
-            # Store file details instead of just name:
-            processed_files.append({
-                "name": os.path.basename(img_path),
-                "classification": label,
-                "confidence": round(file_conf * 100)  # store as percentage integer
-            })
             last_file = img_path
-            print(f"{os.path.basename(img_path)} says: {label}; conf: {round(file_conf * 100)}")
+
+            current_image_data = {
+                "name": os.path.basename(img_path),
+                "imagePath": img_path,
+                "classification": label,
+                "confidence": round(file_conf * 100), # store as percentage integer
+                "override": False,
+            }
+            processed_files.append(current_image_data)
+            update_data = {
+                "currentFile": current_image_data,
+                "progress": {
+                    "frogs": frog_count,
+                    "notFrogs": not_frog_count,
+                    "averageConfidence": round((confidence_total * 100) / len(processed_files)) if len(processed_files) != 0 else 0,
+                    "processedImageCount": len(processed_files),
+                    "totalImageCount": len(image_files),
+                }
+            }
+            print(json.dumps(update_data))
+
         except Exception as e:
             print(f"Error processing {img_path}: {e}")
 
     total_processed = frog_count + not_frog_count
     average_confidence = round((confidence_total / total_processed) * 100) if total_processed > 0 else 0
 
-    runDate = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    run_time = datetime.now().strftime("%Y-%m-%dT%H_%M_%S") # 2025-04-10T17_54_30 (ISO 8601)
     stats = {
-        "runDate": runDate,
+        "runDate": run_time,
         "frogs": frog_count,
         "notFrogs": not_frog_count,
-        "confidence": average_confidence,
-        "files": processed_files,
+        "averageConfidence": average_confidence,
+        "results": processed_files,
         "totalFiles": f"{total_processed}",
-        "currentFile": last_file
     }
 
     # Save this run’s stats to a file for later retrieval.
-    runs_file = os.path.join(".", "backend", "runs.json")
-    try:
-        with open(runs_file, "r") as f:
-            runs = json.load(f)
-    except Exception:
-        runs = []
-    runs.append(stats)
-    with open(runs_file, "w") as f:
-        json.dump(runs, f)
+    runs_folder = os.path.join(os.path.expanduser("~"), "Documents", "Leapfrog", "runs")
+    os.makedirs(runs_folder, exist_ok=True) # creates parent folders if they dont exist
+
+    new_run_path = os.path.join(runs_folder, f"{run_time}.json")
+    stats["filePath"] = new_run_path
+    with open(new_run_path, "w") as f:
+        json.dump(stats, f)
 
     return stats
+
+if __name__ == "__main__":
+    model_path = sys.argv[1]
+    folder_path = sys.argv[2]
+    process_images(folder_path, model_path)

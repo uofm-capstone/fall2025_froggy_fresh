@@ -1,8 +1,11 @@
 .DS_Store
 data/
 node_modules
-backend/venv
+backend/.venv
 backend/frogs
 backend/filtered
 backend/__pycache__
 backend/runs.json
+dist/
+out/
+electron/main.js

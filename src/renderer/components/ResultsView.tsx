@@ -2,51 +2,64 @@
 
 import { useState, useEffect } from "react";
 import BackButton from "./BackButton";
+const { ipcRenderer } = window.require("electron");
 
-// Define the type for a sorting run result
-interface SortResults {
+interface ImageResultData {
+  imagePath: string;
+  rawData: any;
+  name: string;
+  classification: "FROG" | "NOT FROG";
+  confidence: number;
+  override: boolean;
+}
+
+interface SelectedRunData {
+  filePath: string;
   runDate: string;
   frogs: number;
   notFrogs: number;
-  confidence: number;
-  files: Array<{
-    name: string;
-    classification: string;
-    confidence: number;
-  }>;
-  totalFiles: string;
-  currentFile: string;
+  results: Array<ImageResultData>;
+}
+
+// represents each <date>_runs.json file in the runs folder
+interface RunResultsEntry {
+  date: string;
+  time: string;
+  filePath: string;
 }
 
 export default function ResultsView({ onBack }: { onBack: () => void }) {
-  const [runs, setRuns] = useState<SortResults[]>([]);
-  const [selectedRun, setSelectedRun] = useState<SortResults | null>(null);
-  const [selectedImage, setSelectedImage] = useState<{
-    name: string;
-    classification: string;
-    confidence: number;
-  } | null>(null);
+  const [selectedRun, setSelectedRun] = useState<SelectedRunData | null>(null);
+  const [selectedImage, setSelectedImage] = useState<{ image: ImageResultData; loading: boolean} | null>(null);
+  const [runsList, setRunsList] = useState<RunResultsEntry[]>([]);
+
+  const selectRunEntry = async (entry: RunResultsEntry) => {
+    ipcRenderer.invoke("get-run-data", entry.filePath).then((runData: SelectedRunData | null) => {
+      if (runData !== null) {
+        setSelectedRun(runData);
+      };
+    })
+  };
+
+  const selectImage = async (image: ImageResultData) => {
+    // handle update to render image somehow
+    setSelectedImage({ image: image, loading: true });
+    ipcRenderer.invoke("get-raw-image-data", image.imagePath).then((dataResult: { success: true; data: string }) => {
+      if (dataResult.success) {
+        image.rawData = dataResult.data;
+      }
+      setSelectedImage({image: image, loading: false });
+    })
+  };
 
   useEffect(() => {
-    async function fetchRuns() {
-      try {
-        const response = await fetch("http://127.0.0.1:5000/results");
-        if (response.ok) {
-          const data = await response.json();
-          setRuns(data);
-          // Set latest run as default if exists:
-          if (data.length > 0) {
-            setSelectedRun(data[data.length - 1]);
-          }
-        } else {
-          console.error("Failed to fetch results");
-        }
-      } catch (error) {
-        console.error("Error fetching results:", error);
-      }
-    }
-    fetchRuns();
-  }, []);
+    const fetchRunList = async () => {
+      ipcRenderer.invoke("list-runs").then((newRunList: RunResultsEntry[]) => {
+        setRunsList(newRunList);
+      });
+    };
+    fetchRunList();
+  }, []); // passing an empty array here means it only gets called once after initial render
 
   return (
     <div>
@@ -85,12 +98,12 @@ export default function ResultsView({ onBack }: { onBack: () => void }) {
           <div className="col-span-11 grid grid-cols-11">
             <div className="col-span-2 border-r border-[var(--apple-border)]">
               <div className="max-h-[calc(100vh-205px)] overflow-y-auto">
-                {runs.length > 0 ? (
-                  runs.map((run, index) => (
+                {runsList.length > 0 ? (
+                  runsList.map((run, index) => (
                     <button
                       key={index}
                       onClick={() => {
-                        setSelectedRun(run);
+                        selectRunEntry(run);
                         setSelectedImage(null); 
                       }}
                       className={`w-full text-left p-4 text-[var(--apple-text)]
@@ -98,12 +111,12 @@ export default function ResultsView({ onBack }: { onBack: () => void }) {
                                  transition-colors border-b border-[var(--apple-border)]
                                  ${
                                    selectedRun &&
-                                   selectedRun.runDate === run.runDate
+                                   selectedRun.filePath === run.filePath
                                      ? "bg-[var(--apple-accent)] text-white"
                                      : ""
                                  }`}
                     >
-                      {run.runDate}
+                      {`${run.date} ${run.time}`}
                     </button>
                   ))
                 ) : (
@@ -114,15 +127,15 @@ export default function ResultsView({ onBack }: { onBack: () => void }) {
 
             <div className="col-span-5 border-r border-[var(--apple-border)]">
               <div className="max-h-[calc(100vh-205px)] overflow-y-auto scrollbar-hidden">
-                {selectedRun && selectedRun.files.length > 0 ? (
-                  selectedRun.files.map((file, idx) => (
+                {selectedRun && selectedRun.results.length > 0 ? (
+                  selectedRun.results.map((file, idx) => (
                     <div
                       key={idx}
-                      onClick={() => setSelectedImage(file)}
+                      onClick={() => selectImage(file)}
                       className={`grid grid-cols-10 border-b border-[var(--apple-border)]
                                  text-[var(--apple-text)] hover:bg-[#f9f9f9]
                                  dark:hover:bg-[#2c2c2e]/50 cursor-pointer ${
-                                   selectedImage && selectedImage.name === file.name
+                                   selectedImage && selectedImage.image.imagePath === file.imagePath
                                      ? "bg-[#e6f2ff] dark:bg-[#00366d]/30"
                                      : ""
                                  }`}
@@ -145,12 +158,22 @@ export default function ResultsView({ onBack }: { onBack: () => void }) {
                             overflow-hidden mb-4">
                   {selectedImage ? (
                     <>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <p className="text-white/50">{selectedImage.name}</p>
-                      </div>
+                      {
+                        selectedImage.loading === false ? (
+                          <img
+                            src={`data:image/jpeg;base64,${selectedImage.image.rawData}`} // Absolute file path for Electron
+                            alt={selectedImage.image.name}
+                            className="absolute inset-0 w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <p className="text-white/50">{selectedImage.image.name} (loading)</p>
+                          </div>
+                        )
+                      }
                       <div className="absolute bottom-2 right-2 text-xs
                                   bg-black/70 text-white px-2 py-1 rounded">
-                        {selectedImage.name}
+                        {selectedImage.image.name}
                       </div>
                     </>
                   ) : (
