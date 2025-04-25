@@ -4,10 +4,9 @@
   "main": "electron/main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "concurrently \"npm run dev:react\" \"npm run dev:electron\" \"npm run dev:backend\"",
+    "dev": "concurrently \"npm run dev:react\" \"npm run dev:electron\"",
     "dev:react": "vite",
     "dev:electron": "cd electron && electronmon main.js --watch main.js,src/**/* --ignore '/backend/.*'",
-    "dev:backend": "source backend/.venv/bin/activate && python -u backend/app.py",
     "build": "npx tsc src/main/main.ts --outDir electron --module CommonJS --target ESNext && npx vite build",
     "package": "electron-forge package",
     "make": "electron-forge make"
