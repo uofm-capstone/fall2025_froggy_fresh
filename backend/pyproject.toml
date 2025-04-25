@@ -3,11 +3,11 @@ name = "leapfrog"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.9,<=3.10.16"
+requires-python = ">=3.9,<=3.11"
 dependencies = [
-    "flask>=3.1.0",
-    "flask-cors>=5.0.1",
     "numpy>=2.0.2",
     "pillow>=11.1.0",
-    "tensorflow>=2.19.0",
+    # uncomment tensorflow out on linux/macos
+    # on windows, you have to install tensorflow by cding into ./backend and running `uv pip install tensorflow`
+    # "tensorflow>=2.19.0", 
 ]

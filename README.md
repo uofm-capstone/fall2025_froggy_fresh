@@ -26,13 +26,20 @@ Results are stored in your Documents folder.
 ### Running development version
 
 1. Check if npm is installed with `npm --version` and if it is not installed, install it from package manager or the website
+   1. On Windows installing `npm` is kinda borked rn:
+      1. Go here <https://nodejs.org/en/download/> and then run the `winget` and `fnm install` lines.
+      2. for some reason, `fnm install 22` doesn't add `node` to your `PATH`, so you have to add it manually.
+      3. To do that, run `$env:PATH += ";C:\Users\` + YOUR USERNAME + `\AppData\Roaming\fnm\node-versions\v22.14.0\installation"` (or add that line to your `$PROFILE` so it works through shell restarts)
+      4. Make new terminal session and run `node -v` to confirm you can access Node.
 2. Download and install the [UV package manager](https://docs.astral.sh/uv/) from package manager or their website. Make sure UV is in your Path.
 3. Clone the repository from the github
 4. cd into the repository
 5. run `npm install` to install javascript dependencies
-6. run `uv sync --project ./backend` to create a `./backend/.venv` folder and install python dependencies
-7. run `npm run build` to compile `./src/main/main.ts` into `./electron/main.js` (also build the static vite `.tsx` for packaging)
-8. to launch the application run `npm run dev`
+6. On Linux and Mac, uncomment out the `tensorflow` line in the dependencies list in `./backend/pyproject.toml`
+7. run `uv sync --project ./backend` to create a `./backend/.venv` folder and install python dependencies
+8. On Windows, you need to install tensorflow manually. `cd` into `backend` and then run `uv pip install tensorflow` and then `cd` back out with `cd ..`
+9. run `npm run build` to compile `./src/main/main.ts` into `./electron/main.js` (also builds the static vite `.tsx` for packaging)
+10. to launch the application run `npm run dev`
 
 ### Building Electron application to binary
 
