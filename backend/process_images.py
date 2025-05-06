@@ -19,6 +19,8 @@ MODEL_CONFIGS = {
 # Currently active model
 current_model_id = 'frog_detector'
 
+CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "model_configs.json")
+
 def get_model_type(file_path):
     """Determine model type from file extension"""
     ext = os.path.splitext(file_path)[1].lower()
@@ -59,32 +61,48 @@ def load_specific_model(model_id, models_dir=None):
     return model
 
 def list_models(models_dir=None):
-    """List all available models"""
-    available_models = []
-    
-    for model_id, config in MODEL_CONFIGS.items():
-        # Determine if model file exists
-        if models_dir:
-            model_path = os.path.join(models_dir, config['file'])
-        else:
-            model_path = os.path.join(".", "backend", config['file'])
+    """List available models in the models directory."""
+    try:
+        import os
+        global MODEL_CONFIGS  # Add this line
         
-        available = os.path.exists(model_path)
+        # Use correct default path if none provided
+        if models_dir is None:
+            models_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models")
         
-        if available:
-            available_models.append({
-                'id': model_id,
-                'name': model_id.replace('_', ' ').title(),
-                'type': config['type'],
-                'source': config['source'],
-                'file': config['file']
-            })
-    
-    return {
-        "success": True,
-        "models": available_models,
-        "activeModel": current_model_id
-    }
+        if not os.path.exists(models_dir):
+            return {"success": False, "models": [], "error": f"Models directory does not exist: {models_dir}"}
+            
+        content = os.listdir(models_dir)
+        
+        models = []
+        for filename in content:
+            if filename.endswith(('.h5', '.pt', '.onnx')):
+                model_id = os.path.splitext(filename)[0]
+                
+                # Auto-register any model found in directory but not in MODEL_CONFIGS
+                if model_id not in MODEL_CONFIGS:
+                    model_type = get_model_type(filename)
+                    MODEL_CONFIGS[model_id] = {
+                        'file': filename,
+                        'type': model_type,
+                        'source': 'uploaded'
+                    }
+                
+                models.append({
+                    "id": model_id,
+                    "name": model_id.replace('_', ' ').title(),
+                    "type": os.path.splitext(filename)[1][1:].upper(),
+                    "source": MODEL_CONFIGS[model_id].get('source', 'uploaded'),
+                    "file": filename
+                })
+        
+        # If we auto-registered any models, save the configurations
+        save_model_configs()
+        
+        return {"success": True, "models": models}
+    except Exception as e:
+        return {"success": False, "models": [], "error": str(e)}
 
 def set_model(model_id, models_dir=None):
     """Set the current model"""
@@ -143,6 +161,9 @@ def register_model(model_path, model_name=None, models_dir=None):
             'source': 'uploaded'
         }
         
+        # Save changes to config file
+        save_model_configs()
+        
         return {
             "success": True, 
             "model": {
@@ -152,6 +173,37 @@ def register_model(model_path, model_name=None, models_dir=None):
                 "type": model_type,
                 "source": "uploaded"
             }
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+def delete_model(model_id, models_dir=None):
+    """Delete a model by ID"""
+    try:
+        if model_id not in MODEL_CONFIGS:
+            return {"success": False, "error": f"Model not found: {model_id}"}
+        
+        # Prevent deletion of default models
+        if MODEL_CONFIGS[model_id]["source"] == "default":
+            return {"success": False, "error": "Cannot delete default models"}
+        
+        # Get file path
+        model_file = MODEL_CONFIGS[model_id]["file"]
+        file_path = os.path.join(models_dir, model_file) if models_dir else model_file
+        
+        # Delete the file
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        
+        # Remove from model config
+        del MODEL_CONFIGS[model_id]
+        
+        # Save changes to config file
+        save_model_configs()
+        
+        return {
+            "success": True,
+            "message": f"Model {model_id} deleted successfully"
         }
     except Exception as e:
         return {"success": False, "error": str(e)}
@@ -241,3 +293,72 @@ def process_images(folder_path, model_id=None, models_dir=None):
         json.dump(runs, f)
 
     return stats
+
+def save_model_configs():
+    """Save model configurations to a file"""
+    try:
+        with open(CONFIG_FILE, 'w') as f:
+            json.dump(MODEL_CONFIGS, f, indent=2)
+    except Exception as e:
+        print(f"Error saving model configs: {e}")
+
+def load_model_configs():
+    """Load model configurations from file"""
+    global MODEL_CONFIGS
+    try:
+        if os.path.exists(CONFIG_FILE):
+            with open(CONFIG_FILE, 'r') as f:
+                saved_configs = json.load(f)
+                # Update with saved configs while preserving defaults
+                for model_id, config in saved_configs.items():
+                    if model_id not in MODEL_CONFIGS:
+                        MODEL_CONFIGS[model_id] = config
+    except Exception as e:
+        print(f"Error loading model configs: {e}")
+
+# Load saved configurations at startup
+load_model_configs()
+
+if __name__ == "__main__":
+    import argparse
+    import json
+    import sys
+    
+    parser = argparse.ArgumentParser(description='Process images and manage models')
+    parser.add_argument('--list-models', action='store_true', help='List available models')
+    parser.add_argument('--set-model', help='Set active model')
+    parser.add_argument('--register-model', help='Path to model file to register')
+    parser.add_argument('--model-name', help='Name for registered model')
+    parser.add_argument('--delete-model', help='Delete a model by ID')
+    
+    args = parser.parse_args()
+    
+    # Get models directory
+    models_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models")
+    
+    # Handle list-models command
+    if args.list_models:
+        # IMPORTANT: Don't print anything except the JSON output
+        result = list_models(models_dir)
+        # Only output the JSON result, no debug prints
+        print(json.dumps(result))
+        sys.exit(0)
+        
+    # Handle set-model command
+    elif args.set_model:
+        result = set_model(args.set_model, models_dir)
+        print(json.dumps(result))
+        sys.exit(0)
+        
+    # Handle register-model command
+    elif args.register_model and args.model_name:
+        # Use the existing register_model function
+        result = register_model(args.register_model, args.model_name, models_dir)
+        print(json.dumps(result))
+        sys.exit(0)
+        
+    # Handle delete-model command
+    elif args.delete_model:
+        result = delete_model(args.delete_model, models_dir)
+        print(json.dumps(result))
+        sys.exit(0)
