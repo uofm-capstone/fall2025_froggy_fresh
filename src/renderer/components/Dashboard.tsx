@@ -35,6 +35,7 @@ export default function Dashboard({ onSortClick, onResultsClick }: DashboardProp
       {/* Chart section */}
       <div className="w-full max-w-4xl">
         <h2 className="text-2xl font-semibold text-center mb-6 text-[var(--apple-text)]">Frogs Over Time</h2>
+        <div className="text-xs font-semibold text-center text-[var(--apple-subtle-text)]">Chart functionality not yet implemented; example data shown instead</div>
 
         <div className="mb-4">
           <select

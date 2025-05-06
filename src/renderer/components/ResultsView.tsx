@@ -35,12 +35,18 @@ export default function ResultsView({ onBack }: { onBack: () => void }) {
   const [runsList, setRunsList] = useState<RunResultsEntry[]>([]);
 
   const selectRunEntry = async (entry: RunResultsEntry) => {
-    ipcRenderer.invoke("get-run-data", entry.filePath).then((runData: SelectedRunData | null) => {
-      if (runData !== null) {
-        setSelectedRun(runData);
-        setSelectedRunResultsEntry(entry);
-      };
-    })
+    if (selectedRun?.filePath === entry.filePath) {
+      // allow users to deselect current run entry
+      setSelectedRun(null);
+      setSelectedRunResultsEntry(null);
+    } else {
+      ipcRenderer.invoke("get-run-data", entry.filePath).then((runData: SelectedRunData | null) => {
+        if (runData !== null) {
+          setSelectedRun(runData);
+          setSelectedRunResultsEntry(entry);
+        };
+      })
+    }
   };
 
   const selectImage = async (image: ImageResultData) => {
@@ -52,6 +58,27 @@ export default function ResultsView({ onBack }: { onBack: () => void }) {
       }
       setSelectedImage({image: image, loading: false });
     })
+  };
+
+  const overrideImageClassification = async (newClassification: "FROG" | "NOT FROG") => {
+    if (!selectedImage || !selectedRun) return;
+
+    // update image and results since state doesnt update dependently
+    // spread operator ... copies existing fields and modifies classification/override
+    const updatedImage = { ...selectedImage.image, classification: newClassification, override: true };
+    const updatedResults = selectedRun.results.map(image =>
+      image.imagePath === selectedImage.image.imagePath ? updatedImage : image
+    );
+
+    let updatedRun = { ...selectedRun, results: updatedResults };
+    // update frog and notFrogs count without relying on arbitrary counter state
+    updatedRun.frogs = updatedResults.filter(image => image.classification === "FROG").length;
+    updatedRun.notFrogs = updatedResults.filter(image => image.classification === "NOT FROG").length;
+
+    setSelectedRun(updatedRun);
+    setSelectedImage({ ...selectedImage, image: updatedImage });
+
+    await ipcRenderer.invoke("update-image-classification", updatedRun);
   };
 
   const exportCsv = async () => {
@@ -88,7 +115,7 @@ export default function ResultsView({ onBack }: { onBack: () => void }) {
 
       <div className="mb-4">
         <div className="apple-card w-full p-0 overflow-hidden border-b border-[var(--apple-border)]">
-          <div className="grid grid-cols-[4fr,1fr,1fr,1fr,0.65fr] gap-0 w-full text-sm bg-[var(--apple-body-bg)]">
+          <div className="grid grid-cols-[3fr,1fr,1fr,1fr,1fr,0.65fr] gap-0 w-full text-sm bg-[var(--apple-body-bg)]">
             {/* Timestamp column */}
             <div className="p-2 pl-3 font-medium text-[var(--apple-text)] bg-[var(--apple-body-bg)] border-r border-[var(--apple-border)]">
               {selectedRunResultsEntry ? (
@@ -107,7 +134,7 @@ export default function ResultsView({ onBack }: { onBack: () => void }) {
                 selectedRun ? (
                   `${selectedRun.results.length} IMAGES`
                 ) : (
-                  "% IMAGES"
+                  "# IMAGES"
                 )
               }
             </div>
@@ -116,7 +143,7 @@ export default function ResultsView({ onBack }: { onBack: () => void }) {
                 selectedRun ? (
                   `${selectedRun.frogs} FROG`
                 ) : (
-                  "% FROG"
+                  "# FROG"
                 )
               }
             </div>
@@ -125,12 +152,32 @@ export default function ResultsView({ onBack }: { onBack: () => void }) {
                 selectedRun ? (
                   `${selectedRun.notFrogs} NOT FROG`
                 ) : (
-                  "% NOT FROG"
+                  "# NOT FROG"
+                )
+              }
+            </div>
+            <div className="p-2 text-center font-medium text-[var(--apple-text)] bg-[var(--apple-body-bg)] border-r border-[var(--apple-border)] flex items-center justify-center">
+              {
+                selectedRun ? (
+                  <div>
+                    <div>
+                      {(100 - (selectedRun.results.filter(image => image.override).length / selectedRun.results.length * 100)).toFixed(2)}%
+                    </div>
+                    {/* <div className="text-xs text-[var(--apple-subtle-text)]">(not overriden/total)</div> */}
+                  </div>
+                ) : (
+                  <div>
+                    <div>
+                      ACCURACY
+                    </div>
+                    <div className="text-xs text-[var(--apple-subtle-text)]">(not overriden/total)</div>
+                  </div>
                 )
               }
             </div>
 
-            {/* Export Button in the 5th column */}
+
+            {/* Export Button in the 6th column */}
             <div 
               className={`p-2 flex items-center justify-center ${
                 selectedRun ? 'bg-blue-500 cursor-pointer' : 'bg-gray-400 cursor-not-allowed'
@@ -222,7 +269,7 @@ export default function ResultsView({ onBack }: { onBack: () => void }) {
                       <div className="col-span-1 p-4 text-center">{idx + 1}</div>
                       <div className="col-span-3 p-4 truncate">{file.name}</div>
                       <div className="col-span-3 p-4">{file.classification}</div>
-                      <div className="col-span-3 p-4">{file.confidence}%</div>
+                      <div className="col-span-3 p-4">{file.override === false ? `${file.confidence}%` : "OVERRIDE"}</div>
                     </div>
                   ))
                 ) : (
@@ -263,17 +310,20 @@ export default function ResultsView({ onBack }: { onBack: () => void }) {
                 </div>
 
                 <div className="flex gap-4 mt-4">
-                  <button className="flex-1 bg-[var(--apple-green)]
-                             hover:opacity-90 text-white text-xl py-3
-                             rounded-xl border-0 transition-opacity">
+                  <button
+                    className="flex-1 bg-[var(--apple-green)] hover:opacity-90 text-white text-xl py-3 rounded-xl border-0 transition-opacity"
+                    onClick={() => overrideImageClassification("FROG")}
+                  >
                     FROG
                   </button>
-                  <button className="flex-1 bg-[var(--apple-red)]
-                             hover:opacity-90 text-white text-xl py-3
-                             rounded-xl border-0 transition-opacity">
+                  <button
+                    className="flex-1 bg-[var(--apple-red)] hover:opacity-90 text-white text-xl py-3 rounded-xl border-0 transition-opacity"
+                    onClick={() => overrideImageClassification("NOT FROG")}
+                  >
                     NOT FROG
                   </button>
                 </div>
+
               </div>
             </div>
           </div>
