@@ -30,6 +30,7 @@ interface RunResultsEntry {
 
 export default function ResultsView({ onBack }: { onBack: () => void }) {
   const [selectedRun, setSelectedRun] = useState<SelectedRunData | null>(null);
+  const [selectedRunResultsEntry, setSelectedRunResultsEntry] = useState<RunResultsEntry | null>(null);
   const [selectedImage, setSelectedImage] = useState<{ image: ImageResultData; loading: boolean} | null>(null);
   const [runsList, setRunsList] = useState<RunResultsEntry[]>([]);
 
@@ -37,6 +38,7 @@ export default function ResultsView({ onBack }: { onBack: () => void }) {
     ipcRenderer.invoke("get-run-data", entry.filePath).then((runData: SelectedRunData | null) => {
       if (runData !== null) {
         setSelectedRun(runData);
+        setSelectedRunResultsEntry(entry);
       };
     })
   };
@@ -52,6 +54,19 @@ export default function ResultsView({ onBack }: { onBack: () => void }) {
     })
   };
 
+  const exportCsv = async () => {
+    try {
+      const result = await ipcRenderer.invoke("save-csv-dialog", selectedRun);
+      if (result) {
+        console.log("CSV saved at:", result);
+      } else {
+        console.log("Export canceled or failed.");
+      }
+    } catch (error) {
+      console.error("Error exporting CSV:", error);
+    }
+  };
+
   useEffect(() => {
     const fetchRunList = async () => {
       ipcRenderer.invoke("list-runs").then((newRunList: RunResultsEntry[]) => {
@@ -63,13 +78,77 @@ export default function ResultsView({ onBack }: { onBack: () => void }) {
 
   return (
     <div>
-      <div className="mb-6">
-        <div className="flex items-center gap-4 mb-6">
+
+      <div className="mb-8">
+        <div className="flex items-center gap-4 mb-8">
           <BackButton onClick={onBack} />
           <h2 className="text-3xl font-semibold text-[var(--apple-text)]">Results</h2>
         </div>
       </div>
-      
+
+      <div className="mb-4">
+        <div className="apple-card w-full p-0 overflow-hidden border-b border-[var(--apple-border)]">
+          <div className="grid grid-cols-[4fr,1fr,1fr,1fr,0.65fr] gap-0 w-full text-sm bg-[var(--apple-body-bg)]">
+            {/* Timestamp column */}
+            <div className="p-2 pl-3 font-medium text-[var(--apple-text)] bg-[var(--apple-body-bg)] border-r border-[var(--apple-border)]">
+              {selectedRunResultsEntry ? (
+                <div>
+                  <div>{selectedRunResultsEntry.date} {selectedRunResultsEntry.time}</div>
+                  <div className="text-xs text-[var(--apple-subtle-text)]">{selectedRunResultsEntry.filePath}</div>
+                </div>
+              ) : (
+                "No run selected"
+              )}
+            </div>
+
+            {/* Data columns */}
+            <div className="p-2 text-center font-medium text-[var(--apple-text)] bg-[var(--apple-body-bg)] border-r border-[var(--apple-border)] flex items-center justify-center">
+              {
+                selectedRun ? (
+                  `${selectedRun.results.length} IMAGES`
+                ) : (
+                  "% IMAGES"
+                )
+              }
+            </div>
+            <div className="p-2 text-center font-medium text-[var(--apple-text)] bg-[var(--apple-body-bg)] border-r border-[var(--apple-border)] flex items-center justify-center">
+              {
+                selectedRun ? (
+                  `${selectedRun.frogs} FROG`
+                ) : (
+                  "% FROG"
+                )
+              }
+            </div>
+            <div className="p-2 text-center font-medium text-[var(--apple-text)] bg-[var(--apple-body-bg)] border-r border-[var(--apple-border)] flex items-center justify-center">
+              {
+                selectedRun ? (
+                  `${selectedRun.notFrogs} NOT FROG`
+                ) : (
+                  "% NOT FROG"
+                )
+              }
+            </div>
+
+            {/* Export Button in the 5th column */}
+            <div 
+              className={`p-2 flex items-center justify-center ${
+                selectedRun ? 'bg-blue-500 cursor-pointer' : 'bg-gray-400 cursor-not-allowed'
+              }`}
+              onClick={selectedRun ? exportCsv : undefined}
+            >
+              <span className={`text-sm font-semibold ${
+                selectedRun ? 'text-white' : 'text-gray-200'
+              }`}>
+                Export
+              </span>
+            </div>
+
+
+          </div>
+        </div>
+      </div>
+
       <div className="apple-card w-full p-0 overflow-hidden">
         <div className="grid grid-cols-11 gap-0">
           {/* Header row */}
