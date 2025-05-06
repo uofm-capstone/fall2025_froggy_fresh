@@ -6,7 +6,7 @@ const { spawn } = require('child_process');
 let mainWindow;
 
 // Create models directory if it doesn't exist
-const userModelsDir = path.join(app.getPath('userData'), 'models');
+const userModelsDir = path.join(__dirname, '../backend/models');
 if (!fs.existsSync(userModelsDir)) {
   fs.mkdirSync(userModelsDir, { recursive: true });
 }
@@ -54,9 +54,9 @@ ipcMain.handle('upload-model', async () => {
   try {
     const modelPath = result.filePaths[0];
     const modelName = path.basename(modelPath);
-    const destPath = path.join(userModelsDir, modelName);
+    const destPath = path.join(__dirname, '../backend/models', modelName);
     
-    // Copy the model file to app's models directory
+    // Copy the model file to backend/models directory
     fs.copyFileSync(modelPath, destPath);
     
     // Register the model with backend
@@ -98,9 +98,10 @@ ipcMain.handle('upload-model', async () => {
   }
 });
 
-// Get available models
+// Replace the list-models handler with this improved version
 ipcMain.handle('list-models', async () => {
   try {
+    console.log('Spawning Python process for list-models...');
     const pythonProcess = spawn('python', [
       path.join(__dirname, '../backend/process_images.py'),
       '--list-models'
@@ -112,27 +113,41 @@ ipcMain.handle('list-models', async () => {
       
       pythonProcess.stdout.on('data', (data) => {
         stdoutData += data.toString();
+        console.log('Python stdout:', data.toString());
       });
       
       pythonProcess.stderr.on('data', (data) => {
         stderrData += data.toString();
+        console.error('Python stderr:', data.toString());
       });
       
       pythonProcess.on('close', (code) => {
+        console.log(`Python process exited with code ${code}`);
+        console.log('Full stdout:', stdoutData);
+        
         if (code === 0) {
           try {
             const result = JSON.parse(stdoutData);
+            console.log('Parsed result:', result);
             resolve(result);
           } catch (e) {
-            resolve({ success: false, error: 'Failed to parse models list' });
+            console.error('JSON parse error:', e);
+            // More descriptive error
+            resolve({ 
+              success: false, 
+              error: `Failed to parse models list: ${e.message}`,
+              rawData: stdoutData.substring(0, 200) // Include first 200 chars of output
+            });
           }
         } else {
-          resolve({ success: false, error: stderrData || 'Unknown error' });
+          console.error('Python process error:', stderrData);
+          resolve({ success: false, error: stderrData || `Process exited with code ${code}` });
         }
       });
     });
   } catch (error) {
-    return { success: false, error: error.message };
+    console.error('Spawn error:', error);
+    return { success: false, error: `Failed to spawn Python process: ${error.message}` };
   }
 });
 
@@ -171,6 +186,58 @@ ipcMain.handle('switch-model', async (event, modelId) => {
       });
     });
   } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Delete model handler
+ipcMain.handle('delete-model', async (event, modelId) => {
+  try {
+    console.log(`Deleting model: ${modelId}`);
+    const pythonProcess = spawn('python', [
+      path.join(__dirname, '../backend/process_images.py'),
+      '--delete-model',
+      modelId
+    ]);
+    
+    return new Promise((resolve) => {
+      let stdoutData = '';
+      let stderrData = '';
+      
+      pythonProcess.stdout.on('data', (data) => {
+        stdoutData += data.toString();
+        console.log('Python stdout:', data.toString());
+      });
+      
+      pythonProcess.stderr.on('data', (data) => {
+        stderrData += data.toString();
+        console.error('Python stderr:', data.toString());
+      });
+      
+      pythonProcess.on('close', (code) => {
+        if (code === 0) {
+          try {
+            const result = JSON.parse(stdoutData);
+            console.log('Delete result:', result);
+            resolve(result);
+          } catch (e) {
+            console.error('JSON parse error:', e);
+            resolve({ 
+              success: false, 
+              error: `Failed to parse response: ${e.message}`
+            });
+          }
+        } else {
+          console.error('Python process error:', stderrData);
+          resolve({ 
+            success: false, 
+            error: stderrData || `Process exited with code ${code}` 
+          });
+        }
+      });
+    });
+  } catch (error) {
+    console.error('Error deleting model:', error);
     return { success: false, error: error.message };
   }
 });
