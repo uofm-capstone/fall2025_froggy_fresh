@@ -95,6 +95,17 @@ ipcMain.handle("save-csv-dialog", async (event: IpcMainInvokeEvent, runData: Run
   }
 });
 
+ipcMain.handle("update-image-classification", async (event: IpcMainInvokeEvent, runData: RunData) => {
+  try {
+    // Simply overwrite the existing file with updated runData
+    await fs.writeFile(runData.filePath, JSON.stringify(runData, null, 2), "utf-8");
+    return { success: true, filePath: runData.filePath };
+  } catch (error: any) {
+    console.error("Failed to update image classification:", error);
+    return { success: false, error: error.message };
+  }
+});
+
 // Handle listing all runs from Documents/Leapfrog/runs dir
 ipcMain.handle("list-runs", async () => {
   try {
@@ -134,6 +145,15 @@ ipcMain.handle("list-runs", async () => {
   }
 });
 
+interface RunData {
+  filePath: string;
+  runDate: string;
+  frogs: number;
+  notFrogs: number;
+  averageConfidence: number;
+  results: Array<ImageResultData>;
+}
+
 interface ImageResultData {
   name: string;
   imagePath: string;
@@ -150,15 +170,6 @@ function isValidImageResult(result: any): result is ImageResultData {
     typeof result.confidence === "number" &&
     typeof result.override === "boolean"
   );
-}
-
-interface RunData {
-  filePath: string;
-  runDate: string;
-  frogs: number;
-  notFrogs: number;
-  averageConfidence: number;
-  results: Array<ImageResultData>;
 }
 
 function isValidRunData(data: any): data is RunData {
