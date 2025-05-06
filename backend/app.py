@@ -21,7 +21,7 @@ CORS(app)  # <-- enable CORS for all routes
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Models directory
-MODELS_DIR = os.path.join(BASE_DIR, "model")
+MODELS_DIR = os.path.join(BASE_DIR, "models")  # Changed from "model" to "models"
 os.makedirs(MODELS_DIR, exist_ok=True)
 
 # Track current model ID (default to frog_detector)
@@ -82,13 +82,12 @@ def get_results():
 # Model Management Routes
 
 @app.route('/models', methods=['GET'])
-def list_models():
-    try:
-        # Pass the models directory to the function
-        result = process_images.list_models(models_dir=MODELS_DIR)
-        return jsonify(result), 200
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
+def list_available_models():
+    """List all available models"""
+    print("GET /models endpoint called")
+    result = process_images.list_models(MODELS_DIR)
+    print(f"Models API response: {result}")
+    return jsonify(result)
 
 @app.route('/models/switch', methods=['POST'])
 def switch_model():
