@@ -56,6 +56,45 @@ ipcMain.on("open-folder", (event: IpcMainEvent, path: string, showInFolder: bool
   }
 })
 
+function convertRunDataToCsv(runData: RunData): string {
+  const headers = ["Override", "ImagePath", "Classification", "Confidence"];
+  const rows = runData.results.map(({ override, imagePath, classification, confidence }) => {
+    return [
+      override ? "Y" : "N",
+      `"${imagePath}"`, // so paths with commas don't break csv
+      override ? "NA" : classification,
+      confidence
+    ].join(",");
+  });
+  return [headers.join(","), ...rows].join("\n");
+}
+
+ipcMain.handle("save-csv-dialog", async (event: IpcMainInvokeEvent, runData: RunData) => {
+  const result = await dialog.showSaveDialog({
+    title: "Export results to .csv",
+    defaultPath: `${runData.runDate}.csv`,
+    filters: [{
+      name: "CSV Files", extensions: ["csv"]
+    }]
+  });
+
+  if (result.canceled || !result.filePath) {
+    return null; // user decided not to save file/cancel
+  }
+
+  const csvData = convertRunDataToCsv(runData);
+
+  try {
+    await fs.writeFile(result.filePath, csvData, "utf-8");
+    const filePath = result.filePath;
+    shell.showItemInFolder(filePath);
+    return result.filePath;
+  } catch (error) {
+    console.error("Failed to save CSV:", error);
+    return null;
+  }
+});
+
 // Handle listing all runs from Documents/Leapfrog/runs dir
 ipcMain.handle("list-runs", async () => {
   try {
