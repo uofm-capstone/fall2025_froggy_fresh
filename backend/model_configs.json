@@ -1,0 +1,12 @@
+{
+  "frog_detector": {
+    "file": "frog_detector.h5",
+    "type": "keras",
+    "source": "default"
+  },
+  "test": {
+    "file": "test.h5",
+    "type": "keras",
+    "source": "uploaded"
+  }
+}
