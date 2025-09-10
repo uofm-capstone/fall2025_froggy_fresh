@@ -1,5 +1,9 @@
 # README
 
+## Froggy Fresh Fall 2025 Documents
+* Timesheet: https://docs.google.com/spreadsheets/d/1xcMFReWcBJ__tyjXvqYqbAp0-dRgmOaRzxluAu3lHHk
+* Team Contract: https://docs.google.com/document/d/11bn6WYxDa5iVKj05U69uvbrIomSSs02lq8bIM02frT4/edit?tab=t.0
+
 ## Team Leapfrog Spring Semester Documents
 
 * Timesheet:
