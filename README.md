@@ -4,6 +4,7 @@
 * Timesheet: https://docs.google.com/spreadsheets/d/1xcMFReWcBJ__tyjXvqYqbAp0-dRgmOaRzxluAu3lHHk
 * Team Contract: https://docs.google.com/document/d/11bn6WYxDa5iVKj05U69uvbrIomSSs02lq8bIM02frT4/edit?tab=t.0
 * Demo Day Slideshow: https://docs.google.com/presentation/d/1ub_uc_TA9ASsFkTqenqteI9cgiW2PN_l3W7wv6oyXLs/edit?usp=sharing
+* Notes: https://docs.google.com/document/d/1JARno9335g6qGYY5gelcrZA_0k6v0L0IzJhCMttzEik/edit?usp=sharing
 
 ## Team Leapfrog Spring Semester Documents
 
