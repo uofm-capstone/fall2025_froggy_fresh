@@ -138,6 +138,15 @@ export default function SortView({ onBack, onResults, onSortComplete }: SortView
             </div>
           </div>
 
+          {/* Allow the user to input a camera number. This will be used in the CSV file for photos processed */}
+          <label htmlFor="camera-number" className="px-4 py-2">Camera Number</label>
+          <input 
+            type="number"
+            min="1"
+            className="mb-6 px-2 py-2"
+            name="camera-number">
+          </input>
+
           <button
             onClick={handleStart}
             disabled={!isFolderSelected}
