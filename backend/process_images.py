@@ -6,12 +6,15 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 from datetime import datetime
 
+def is_filetype_valid(file_path):
+    return file_path.endswith(".jpg") or file_path.endswith(".jpeg") or file_path.endswith(".png")
+
 def process_images(folder_path, model_path):
     model = load_model(model_path)
 
     processed_files = []
 
-    image_files = [os.path.join(folder_path, f) for f in os.listdir(folder_path) if f.lower().endswith(".jpg")]
+    image_files = [os.path.join(folder_path, f) for f in os.listdir(folder_path) if is_filetype_valid(f.lower())]
     
     # Initialize stats counters
     frog_count = 0
