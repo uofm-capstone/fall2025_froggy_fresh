@@ -21,6 +21,7 @@ export default function SortView({ onBack, onResults, onSortComplete }: SortView
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [folderPath, setFolderPath] = useState<string>("");
   const [isFolderSelected, setIsFolderSelected] = useState<boolean>(false);
+  const [cameraNumber, setCameraNumber] = useState<number>(1);
   // New state to store backend stats
   const [stats, setStats] = useState<{
     frogs: number;
@@ -112,6 +113,11 @@ export default function SortView({ onBack, onResults, onSortComplete }: SortView
   //   };
   // }, []);
 
+  // Handle camera number input 
+  const handleCameraNumber = (event) => {
+    setCameraNumber(event.target.value);
+  };
+
   return (
     <div>
       <div className="mb-8">
@@ -144,7 +150,9 @@ export default function SortView({ onBack, onResults, onSortComplete }: SortView
             type="number"
             min="1"
             className="mb-6 px-2 py-2"
-            name="camera-number">
+            name="camera-number"
+            value={cameraNumber}
+            onInput={handleCameraNumber}>
           </input>
 
           <button
