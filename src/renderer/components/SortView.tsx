@@ -50,6 +50,7 @@ export default function SortView({ onBack, onResults, onSortComplete }: SortView
     absolutePath: string; // The full path to the file
     classification: string; // The classification result (e.g., "FROG" | "NOT FROG")
     confidence: number; // Confidence level as a percentage (integer)
+    camera: number; // Camera number associated with the file
   };
   
   type ProgressData = {
@@ -71,7 +72,7 @@ export default function SortView({ onBack, onResults, onSortComplete }: SortView
   const handleStart = async () => {
     console.log(`handleStart says folder path '${folderPath}'`);
 
-    ipcRenderer.send("run-process-images", folderPath);
+    ipcRenderer.send("run-process-images", folderPath, cameraNumber);
     setIsRunning(true);
     const updateOutput = (event: IpcRendererEvent, line: string) => {
       try {

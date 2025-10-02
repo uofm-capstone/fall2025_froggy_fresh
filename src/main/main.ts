@@ -57,13 +57,14 @@ ipcMain.on("open-folder", (event: IpcMainEvent, path: string, showInFolder: bool
 })
 
 function convertRunDataToCsv(runData: RunData): string {
-  const headers = ["Override", "ImagePath", "Classification", "Confidence"];
-  const rows = runData.results.map(({ override, imagePath, classification, confidence }) => {
+  const headers = ["Override", "ImagePath", "Classification", "Confidence", "Camera"];
+  const rows = runData.results.map(({ override, imagePath, classification, confidence, camera }) => {
     return [
       override ? "Y" : "N",
       `"${imagePath}"`, // so paths with commas don't break csv
       override ? "NA" : classification,
-      confidence
+      confidence,
+      camera
     ].join(",");
   });
   return [headers.join(","), ...rows].join("\n");
@@ -160,6 +161,7 @@ interface ImageResultData {
   classification: "FROG" | "NOT FROG";
   confidence: number;
   override: boolean;
+  camera: boolean;
 }
 
 function isValidImageResult(result: any): result is ImageResultData {
@@ -213,10 +215,11 @@ ipcMain.handle("get-raw-image-data", async (event: IpcMainInvokeEvent, imagePath
   }
 })
 
-ipcMain.on("run-process-images", (event: IpcMainEvent, folderPath: string) => {
+ipcMain.on("run-process-images", (event: IpcMainEvent, folderPath: string, cameraNumber: number) => {
   const processImagesScriptPath = path.resolve(resourcesFolder, "backend", "process_images.py");
   const modelPath = path.resolve(resourcesFolder, "backend", "frog_detector.h5");
-  const processImagesProcess = spawn(pythonPath, ["-u", processImagesScriptPath, modelPath, folderPath], {
+  const cameraString = cameraNumber.toString();
+  const processImagesProcess = spawn(pythonPath, ["-u", processImagesScriptPath, modelPath, folderPath, cameraString], {
     cwd: path.resolve(resourcesFolder, "backend"),
   });
 
