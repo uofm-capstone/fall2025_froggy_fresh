@@ -9,7 +9,7 @@ from datetime import datetime
 def is_filetype_valid(file_path):
     return file_path.endswith(".jpg") or file_path.endswith(".jpeg") or file_path.endswith(".png")
 
-def process_images(folder_path, model_path):
+def process_images(folder_path, model_path, camera_number):
     model = load_model(model_path)
 
     processed_files = []
@@ -53,6 +53,7 @@ def process_images(folder_path, model_path):
                 "classification": label,
                 "confidence": round(file_conf * 100), # store as percentage integer
                 "override": False,
+                "camera": camera_number
             }
             processed_files.append(current_image_data)
             update_data = {
@@ -95,6 +96,8 @@ def process_images(folder_path, model_path):
     return stats
 
 if __name__ == "__main__":
+    print(sys.argv)
     model_path = sys.argv[1]
     folder_path = sys.argv[2]
-    process_images(folder_path, model_path)
+    camera_number = sys.argv[3]
+    process_images(folder_path, model_path, int(camera_number))

@@ -21,6 +21,7 @@ export default function SortView({ onBack, onResults, onSortComplete }: SortView
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [folderPath, setFolderPath] = useState<string>("");
   const [isFolderSelected, setIsFolderSelected] = useState<boolean>(false);
+  const [cameraNumber, setCameraNumber] = useState<number>(1);
   // New state to store backend stats
   const [stats, setStats] = useState<{
     frogs: number;
@@ -49,6 +50,7 @@ export default function SortView({ onBack, onResults, onSortComplete }: SortView
     absolutePath: string; // The full path to the file
     classification: string; // The classification result (e.g., "FROG" | "NOT FROG")
     confidence: number; // Confidence level as a percentage (integer)
+    camera: number; // Camera number associated with the file
   };
   
   type ProgressData = {
@@ -70,7 +72,7 @@ export default function SortView({ onBack, onResults, onSortComplete }: SortView
   const handleStart = async () => {
     console.log(`handleStart says folder path '${folderPath}'`);
 
-    ipcRenderer.send("run-process-images", folderPath);
+    ipcRenderer.send("run-process-images", folderPath, cameraNumber);
     setIsRunning(true);
     const updateOutput = (event: IpcRendererEvent, line: string) => {
       try {
@@ -112,6 +114,11 @@ export default function SortView({ onBack, onResults, onSortComplete }: SortView
   //   };
   // }, []);
 
+  // Handle camera number input 
+  const handleCameraNumber = (event) => {
+    setCameraNumber(event.target.value);
+  };
+
   return (
     <div>
       <div className="mb-8">
@@ -137,6 +144,17 @@ export default function SortView({ onBack, onResults, onSortComplete }: SortView
               </button>
             </div>
           </div>
+
+          {/* Allow the user to input a camera number. This will be used in the CSV file for photos processed */}
+          <label htmlFor="camera-number" className="px-4 py-2">Camera Number</label>
+          <input 
+            type="number"
+            min="1"
+            className="mb-6 px-2 py-2"
+            name="camera-number"
+            value={cameraNumber}
+            onInput={handleCameraNumber}>
+          </input>
 
           <button
             onClick={handleStart}
