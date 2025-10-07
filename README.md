@@ -3,7 +3,7 @@
 ## Froggy Fresh Fall 2025 Documents
 * Timesheet: https://docs.google.com/spreadsheets/d/1xcMFReWcBJ__tyjXvqYqbAp0-dRgmOaRzxluAu3lHHk
 * Team Contract: https://docs.google.com/document/d/11bn6WYxDa5iVKj05U69uvbrIomSSs02lq8bIM02frT4/edit?tab=t.0
-* Demo Day Slideshow: https://docs.google.com/presentation/d/1ub_uc_TA9ASsFkTqenqteI9cgiW2PN_l3W7wv6oyXLs/edit?usp=sharing
+* Demo Day Slideshow: https://docs.google.com/presentation/d/1cz3R0_1_6XCYNbiV0pAiOBF-sIOWKPiGXT9J_JHUbks/edit
 * Notes: https://docs.google.com/document/d/1JARno9335g6qGYY5gelcrZA_0k6v0L0IzJhCMttzEik/edit?usp=sharing
 
 ## Frog Capture AI Recognizer
