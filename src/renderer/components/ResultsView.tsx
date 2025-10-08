@@ -11,6 +11,7 @@ interface ImageResultData {
   classification: "FROG" | "NOT FROG";
   confidence: number;
   override: boolean;
+  camera: number;
 }
 
 interface SelectedRunData {
