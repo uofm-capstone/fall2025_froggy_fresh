@@ -7,8 +7,8 @@
 * Notes: https://docs.google.com/document/d/1JARno9335g6qGYY5gelcrZA_0k6v0L0IzJhCMttzEik/edit?usp=sharing
 
 ### Sprint 2
-[Nicole Clark feedback for Jacob Hensley](https://github.com/user-attachments/files/22782978/Jacob.Hensley.Formal.Review.by.Nicole.Clark.pdf)
-[Jacob Hensley feedback for Nicole Clark](https://github.com/user-attachments/files/22782985/Nicole.Clark.Formal.Review.by.Jacob.Hensley.pdf)
+- [Nicole Clark feedback for Jacob Hensley](https://github.com/user-attachments/files/22782978/Jacob.Hensley.Formal.Review.by.Nicole.Clark.pdf)
+- [Jacob Hensley feedback for Nicole Clark](https://github.com/user-attachments/files/22782985/Nicole.Clark.Formal.Review.by.Jacob.Hensley.pdf)
 
 
 ## Frog Capture AI Recognizer
