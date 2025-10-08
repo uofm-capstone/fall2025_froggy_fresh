@@ -9,7 +9,8 @@
 ### Sprint 2
 - [Nicole Clark feedback for Jacob Hensley](https://github.com/user-attachments/files/22782978/Jacob.Hensley.Formal.Review.by.Nicole.Clark.pdf)
 - [Jacob Hensley feedback for Nicole Clark](https://github.com/user-attachments/files/22782985/Nicole.Clark.Formal.Review.by.Jacob.Hensley.pdf)
-
+- [Kelly Nguyen feedback for Maria Kennedy](https://docs.google.com/document/d/1Fg4b6gOSAyc7v6xUKRNJuBetPvo3-3_FpExa-NQeUqo/edit?usp=sharing)
+- [Maria Kennedy feedback for Kelly Nguyen](https://docs.google.com/document/d/1JnqCVITWT_RAlAgdjE-c4aHh2XDH4l3lUmLjeTit9iU/edit?usp=sharing) 
 
 ## Frog Capture AI Recognizer
 
