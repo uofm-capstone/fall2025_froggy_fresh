@@ -11,7 +11,8 @@
 - [Jacob Hensley feedback for Nicole Clark](https://github.com/user-attachments/files/22782985/Nicole.Clark.Formal.Review.by.Jacob.Hensley.pdf)
 - [Kelly Nguyen feedback for Maria Kennedy](https://docs.google.com/document/d/1Fg4b6gOSAyc7v6xUKRNJuBetPvo3-3_FpExa-NQeUqo/edit?usp=sharing)
 - [Maria Kennedy feedback for Kelly Nguyen](https://docs.google.com/document/d/1JnqCVITWT_RAlAgdjE-c4aHh2XDH4l3lUmLjeTit9iU/edit?usp=sharing) 
-
+- [Jacob Chaney feedback for Brian Collier](https://livememphis-my.sharepoint.com/:w:/g/personal/jschney1_memphis_edu/EXD0posOv8NFq2YW7TbVgMABYpjDczRvhOOYGV2v7HvjXA?e=BVOrzH)
+- [Brian Collier feedback for Jacob Chaney](https://livememphis-my.sharepoint.com/:w:/g/personal/jschney1_memphis_edu/ETzQ3C1CORVGlHaeQ4FB6_EBiWv2h-S_3r4lL3d-GoyIbQ?e=JLbp0n) 
 ## Frog Capture AI Recognizer
 
 This project aims to develop an automated deep learning system that detects frogs in image captured from frog traps.
