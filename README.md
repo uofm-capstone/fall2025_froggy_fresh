@@ -12,7 +12,9 @@
 - [Kelly Nguyen feedback for Maria Kennedy](https://docs.google.com/document/d/1Fg4b6gOSAyc7v6xUKRNJuBetPvo3-3_FpExa-NQeUqo/edit?usp=sharing)
 - [Maria Kennedy feedback for Kelly Nguyen](https://docs.google.com/document/d/1JnqCVITWT_RAlAgdjE-c4aHh2XDH4l3lUmLjeTit9iU/edit?usp=sharing) 
 - [Jacob Chaney feedback for Brian Collier](https://livememphis-my.sharepoint.com/:w:/g/personal/jschney1_memphis_edu/EXD0posOv8NFq2YW7TbVgMABYpjDczRvhOOYGV2v7HvjXA?e=BVOrzH)
-- [Brian Collier feedback for Jacob Chaney](https://livememphis-my.sharepoint.com/:w:/g/personal/jschney1_memphis_edu/ETzQ3C1CORVGlHaeQ4FB6_EBiWv2h-S_3r4lL3d-GoyIbQ?e=JLbp0n) 
+- [Brian Collier feedback for Jacob Chaney](https://livememphis-my.sharepoint.com/:w:/g/personal/jschney1_memphis_edu/ETzQ3C1CORVGlHaeQ4FB6_EBiWv2h-S_3r4lL3d-GoyIbQ?e=JLbp0n)
+- [Kevin Gibson feedback for Raid Amer]([https://livememphis-my.sharepoint.com/:w:/g/personal/jschney1_memphis_edu/ETzQ3C1CORVGlHaeQ4FB6_EBiWv2h-S_3r4lL3d-GoyIbQ?e=JLbp0n](https://docs.google.com/document/d/11ZISBBx_p14VXRXc6ai2tNjku3f4zUTO5VDungTIZug/edit?tab=t.0))
+- [Raid Amer  feedback for Kevi Gibson]([https://livememphis-my.sharepoint.com/:w:/g/personal/jschney1_memphis_edu/ETzQ3C1CORVGlHaeQ4FB6_EBiWv2h-S_3r4lL3d-GoyIbQ?e=JLbp0n](https://docs.google.com/document/d/1nppUkO9kWzsMA7kJJoTIpuzbDwkwaLihvah_oZfCT0o/edit?tab=t.0))  
 ## Frog Capture AI Recognizer
 
 This project aims to develop an automated deep learning system that detects frogs in image captured from frog traps.
