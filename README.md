@@ -3,9 +3,18 @@
 ## Froggy Fresh Fall 2025 Documents
 * Timesheet: https://docs.google.com/spreadsheets/d/1xcMFReWcBJ__tyjXvqYqbAp0-dRgmOaRzxluAu3lHHk
 * Team Contract: https://docs.google.com/document/d/11bn6WYxDa5iVKj05U69uvbrIomSSs02lq8bIM02frT4/edit?tab=t.0
-* Demo Day Slideshow: https://docs.google.com/presentation/d/1ub_uc_TA9ASsFkTqenqteI9cgiW2PN_l3W7wv6oyXLs/edit?usp=sharing
+* Demo Day Slideshow: https://docs.google.com/presentation/d/1cz3R0_1_6XCYNbiV0pAiOBF-sIOWKPiGXT9J_JHUbks/edit
 * Notes: https://docs.google.com/document/d/1JARno9335g6qGYY5gelcrZA_0k6v0L0IzJhCMttzEik/edit?usp=sharing
 
+### Sprint 2
+- [Nicole Clark feedback for Jacob Hensley](https://github.com/user-attachments/files/22782978/Jacob.Hensley.Formal.Review.by.Nicole.Clark.pdf)
+- [Jacob Hensley feedback for Nicole Clark](https://github.com/user-attachments/files/22782985/Nicole.Clark.Formal.Review.by.Jacob.Hensley.pdf)
+- [Kelly Nguyen feedback for Maria Kennedy](https://docs.google.com/document/d/1Fg4b6gOSAyc7v6xUKRNJuBetPvo3-3_FpExa-NQeUqo/edit?usp=sharing)
+- [Maria Kennedy feedback for Kelly Nguyen](https://docs.google.com/document/d/1JnqCVITWT_RAlAgdjE-c4aHh2XDH4l3lUmLjeTit9iU/edit?usp=sharing) 
+- [Jacob Chaney feedback for Brian Collier](https://livememphis-my.sharepoint.com/:w:/g/personal/jschney1_memphis_edu/EXD0posOv8NFq2YW7TbVgMABYpjDczRvhOOYGV2v7HvjXA?e=BVOrzH)
+- [Brian Collier feedback for Jacob Chaney](https://livememphis-my.sharepoint.com/:w:/g/personal/jschney1_memphis_edu/ETzQ3C1CORVGlHaeQ4FB6_EBiWv2h-S_3r4lL3d-GoyIbQ?e=JLbp0n)
+- [Kevin Gibson feedback for Raid Amer](https://livememphis-my.sharepoint.com/:w:/g/personal/jschney1_memphis_edu/ETzQ3C1CORVGlHaeQ4FB6_EBiWv2h-S_3r4lL3d-GoyIbQ?e=JLbp0n](https://docs.google.com/document/d/11ZISBBx_p14VXRXc6ai2tNjku3f4zUTO5VDungTIZug/edit?tab=t.0))
+- [Raid Amer  feedback for Kevin Gibson](https://livememphis-my.sharepoint.com/:w:/g/personal/jschney1_memphis_edu/ETzQ3C1CORVGlHaeQ4FB6_EBiWv2h-S_3r4lL3d-GoyIbQ?e=JLbp0n](https://docs.google.com/document/d/1nppUkO9kWzsMA7kJJoTIpuzbDwkwaLihvah_oZfCT0o/edit?tab=t.0))  
 ## Frog Capture AI Recognizer
 
 This project aims to develop an automated deep learning system that detects frogs in image captured from frog traps.
