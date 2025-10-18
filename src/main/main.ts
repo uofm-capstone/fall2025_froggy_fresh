@@ -161,7 +161,7 @@ interface ImageResultData {
   classification: "FROG" | "NOT FROG";
   confidence: number;
   override: boolean;
-  camera: boolean;
+  camera: number;
 }
 
 function isValidImageResult(result: any): result is ImageResultData {
