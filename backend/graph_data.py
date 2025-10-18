@@ -10,11 +10,12 @@ def load_run_data(folder_path):
         with open(run, 'r') as file:
             data = json.load(file)
             if "runDate" in data and "frogs" in data:
-                # TODO: Once the Camera CSV Column PR is approved, add in camera number filtering 
+                camera = data[camera] if "camera" in data else None # Allow camera field to be missing for compatibility with older runs
                 run_time = datetime.strptime(data["runDate"], "%Y-%m-%dT%H_%M_%S")
                 graph_data.append({
                     'time': run_time, 
-                    'frogs': data["frogs"]
+                    'frogs': data["frogs"],
+                    'camera': camera
                     })
     graph_data.sort(key=lambda x: x['time'])
     return graph_data
