@@ -1,5 +1,6 @@
 "use client";
 
+const { ipcRenderer } = window.require("electron");
 import { useEffect, useState } from "react";
 import {
   LineChart,
@@ -21,6 +22,8 @@ export default function FrogChart({ cameraId }: FrogChartProps) {
 
   // Generate different data based on camera ID
   useEffect(() => {
+    let graphData = ipcRenderer.send("get-graph-data");
+    console.log("Graph Data from main process:", graphData);
     // Base data
     const baseData = [
       { month: "Feb", frogs: 20 },

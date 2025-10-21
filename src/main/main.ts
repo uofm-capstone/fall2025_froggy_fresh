@@ -164,6 +164,12 @@ interface ImageResultData {
   camera: number;
 }
 
+interface GraphData {
+  runDate: string;
+  frogs: number;
+  camera: number;
+}
+
 function isValidImageResult(result: any): result is ImageResultData {
   return (
     typeof result.imagePath === "string" &&
@@ -182,6 +188,14 @@ function isValidRunData(data: any): data is RunData {
     typeof data.filePath === "string" &&
     Array.isArray(data.results) &&
     data.results.every(isValidImageResult)
+  );
+}
+
+function isValidGraphData(data: any): data is GraphData {
+  return (
+    typeof data.runDate === "string" &&
+    typeof data.frogs === "number" &&
+    typeof data.camera === "number"
   );
 }
 
@@ -247,5 +261,28 @@ ipcMain.on("run-process-images", (event: IpcMainEvent, folderPath: string, camer
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     app.quit();
+  }
+});
+
+ipcMain.handle("get-graph-data", async (event: IpcMainInvokeEvent): Promise<Array<GraphData> | null> => {
+  try {
+    let graphData = [];
+    let runResultPath = path.resolve(os.homedir(), "Documents", "Leapfrog", "runs");
+    console.log(runResultPath)
+    for (let fileName of await fs.readdir(path.dirname(runResultPath))) {
+      const rawData = await fs.readFile(fileName, "utf-8");
+      const data = JSON.parse(rawData);
+      if (isValidGraphData(data)) {
+        graphData.push({
+          runDate: data.runDate,
+          frogs: data.frogs,
+          camera: data.camera
+        });
+      }
+    }
+    return graphData;
+  } catch (error) {
+    console.error("Error reading or parsing file:", error);
+    return null;
   }
 });
