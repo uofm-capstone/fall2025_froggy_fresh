@@ -31,7 +31,7 @@ export default function FrogChart({ cameraId }: FrogChartProps) {
     ipcRenderer.invoke("get-graph-data").then((graphData: Array<GraphData> | null) => {
       if (graphData) {
         let filteredGraphData = graphData.filter(item => item.camera === Number(cameraId.replace("camera", "")));
-        setData(filteredGraphData.map(item => ({ month: item.runDate, frogs: item.frogs })));
+        setData(filteredGraphData.map(item => ({ month: item.runDate.split("T")[0], frogs: item.frogs })));
         console.log("Graph Data from main process:", graphData);
       }
     });
