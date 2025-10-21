@@ -17,43 +17,53 @@ interface FrogChartProps {
   cameraId: string;
 }
 
+interface GraphData {
+  runDate: string;
+  frogs: number;
+  camera: number;
+}
+
 export default function FrogChart({ cameraId }: FrogChartProps) {
   const [data, setData] = useState<any[]>([]);
 
   // Generate different data based on camera ID
   useEffect(() => {
-    let graphData = ipcRenderer.send("get-graph-data");
-    console.log("Graph Data from main process:", graphData);
-    // Base data
-    const baseData = [
-      { month: "Feb", frogs: 20 },
-      { month: "Mar", frogs: 22 },
-      { month: "Apr", frogs: 28 },
-      { month: "May", frogs: 40 },
-      { month: "Jun", frogs: 52 },
-      { month: "Jul", frogs: 68 },
-      { month: "Aug", frogs: 75 },
-      { month: "Sep", frogs: 80 },
-      { month: "Oct", frogs: 78 },
-      { month: "Nov", frogs: 80 },
-      { month: "Dec", frogs: 80 },
-    ];
+    ipcRenderer.invoke("get-graph-data").then((graphData: Array<GraphData> | null) => {
+      if (graphData) {
+        setData(graphData.map(item => ({ month: item.runDate, frogs: item.frogs })));
+        console.log("Graph Data from main process:", graphData);
+      }
+    });
+    // // Base data
+    // const baseData = [
+    //   { month: "Feb", frogs: 20 },
+    //   { month: "Mar", frogs: 22 },
+    //   { month: "Apr", frogs: 28 },
+    //   { month: "May", frogs: 40 },
+    //   { month: "Jun", frogs: 52 },
+    //   { month: "Jul", frogs: 68 },
+    //   { month: "Aug", frogs: 75 },
+    //   { month: "Sep", frogs: 80 },
+    //   { month: "Oct", frogs: 78 },
+    //   { month: "Nov", frogs: 80 },
+    //   { month: "Dec", frogs: 80 },
+    // ];
 
-    // Generate different data for each camera
-    let chartData = [...baseData];
-    if (cameraId === "camera2") {
-      chartData = baseData.map(point => ({
-        ...point,
-        frogs: Math.floor(point.frogs * 0.8)
-      }));
-    } else if (cameraId === "camera3") {
-      chartData = baseData.map(point => ({
-        ...point,
-        frogs: Math.floor(point.frogs * 1.2)
-      }));
-    }
+    // // Generate different data for each camera
+    // let chartData = [...baseData];
+    // if (cameraId === "camera2") {
+    //   chartData = baseData.map(point => ({
+    //     ...point,
+    //     frogs: Math.floor(point.frogs * 0.8)
+    //   }));
+    // } else if (cameraId === "camera3") {
+    //   chartData = baseData.map(point => ({
+    //     ...point,
+    //     frogs: Math.floor(point.frogs * 1.2)
+    //   }));
+    // }
 
-    setData(chartData);
+    // setData(chartData);
   }, [cameraId]);
 
   return (

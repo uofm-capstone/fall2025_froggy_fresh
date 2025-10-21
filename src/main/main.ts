@@ -266,18 +266,25 @@ app.on("window-all-closed", () => {
 
 ipcMain.handle("get-graph-data", async (event: IpcMainInvokeEvent): Promise<Array<GraphData> | null> => {
   try {
-    let graphData = [];
+    let graphData = new Array<GraphData>();
     let runResultPath = path.resolve(os.homedir(), "Documents", "Leapfrog", "runs");
     console.log(runResultPath)
-    for (let fileName of await fs.readdir(path.dirname(runResultPath))) {
-      const rawData = await fs.readFile(fileName, "utf-8");
+    for (let fileName of await fs.readdir(runResultPath)) {
+      console.log(fileName);
+      const rawData = await fs.readFile(path.join(runResultPath, fileName), "utf-8");
       const data = JSON.parse(rawData);
-      if (isValidGraphData(data)) {
-        graphData.push({
+      if (isValidRunData(data) && data.results.length > 0 && typeof data.results[0].camera === "number") {
+        let graphableRunData = {
           runDate: data.runDate,
           frogs: data.frogs,
-          camera: data.camera
-        });
+          camera: data.results[0].camera
+        }
+        if (isValidGraphData(graphableRunData)) {
+          graphData.push(graphableRunData);
+        }
+        else {
+          console.error("Invalid GraphData structure:", graphableRunData);
+        }
       }
     }
     return graphData;
