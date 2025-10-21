@@ -140,7 +140,7 @@ export default function SortView({ onBack, onResults, onSortComplete }: SortView
                 readOnly
               />
               <button onClick={handleBrowse} className="apple-button-secondary">
-                Browse
+                Select Folder
               </button>
             </div>
           </div>
