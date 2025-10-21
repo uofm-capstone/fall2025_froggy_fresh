@@ -35,36 +35,6 @@ export default function FrogChart({ cameraId }: FrogChartProps) {
         console.log("Graph Data from main process:", graphData);
       }
     });
-    // // Base data
-    // const baseData = [
-    //   { month: "Feb", frogs: 20 },
-    //   { month: "Mar", frogs: 22 },
-    //   { month: "Apr", frogs: 28 },
-    //   { month: "May", frogs: 40 },
-    //   { month: "Jun", frogs: 52 },
-    //   { month: "Jul", frogs: 68 },
-    //   { month: "Aug", frogs: 75 },
-    //   { month: "Sep", frogs: 80 },
-    //   { month: "Oct", frogs: 78 },
-    //   { month: "Nov", frogs: 80 },
-    //   { month: "Dec", frogs: 80 },
-    // ];
-
-    // // Generate different data for each camera
-    // let chartData = [...baseData];
-    // if (cameraId === "camera2") {
-    //   chartData = baseData.map(point => ({
-    //     ...point,
-    //     frogs: Math.floor(point.frogs * 0.8)
-    //   }));
-    // } else if (cameraId === "camera3") {
-    //   chartData = baseData.map(point => ({
-    //     ...point,
-    //     frogs: Math.floor(point.frogs * 1.2)
-    //   }));
-    // }
-
-    // setData(chartData);
   }, [cameraId]);
 
   return (
