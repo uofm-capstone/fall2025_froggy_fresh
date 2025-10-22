@@ -45,4 +45,4 @@ validation_generator = train_datagen.flow_from_directory(
 model.fit(train_generator, validation_data=validation_generator, epochs=10)
 
 # Save 
-model.save("frog_detector.h5")
+model.save("frog_detector.keras")
