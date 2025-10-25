@@ -271,7 +271,10 @@ export default function ResultsView({ onBack }: { onBack: () => void }) {
                       <div className="col-span-3 p-4 truncate">{file.name}</div>
                       <div className="col-span-3 p-4">{file.classification}</div>
                       <div className="col-span-3 p-4">
-                        {file.override === false ? `${file.confidence}%` : "OVERRIDE"}
+                        {`${file.confidence}%`}
+                        {file.override && (
+                          <span className="text-xs text-[var(--apple-subtle-text)] ml-2">(OVERRIDE)</span>
+                      )}
                       </div>
                     </div>
                   ))
