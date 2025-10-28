@@ -1,15 +1,48 @@
 "use client";
+const { ipcRenderer } = window.require("electron");
 
 import { useState } from "react";
 import FrogChart from "./FrogChart";
+import { GraphData } from "./FrogChart";
 
 interface DashboardProps {
   onSortClick: () => void;
   onResultsClick: () => void;
 }
 
+
 export default function Dashboard({ onSortClick, onResultsClick }: DashboardProps) {
   const [activeCamera, setActiveCamera] = useState<string>("camera1");
+  const [availableCameras] = useState<number[]>([]);
+  const [cameraOptions, setCameraOptions] = useState<JSX.Element[]>();
+  const [graphData, setGraphData] = useState<Array<GraphData> | null | undefined>(null);
+
+  async function loadGraphData() {
+    setGraphData(undefined); // Indicate loading state
+    ipcRenderer.invoke("get-graph-data").then((loadedData: Array<GraphData> | null) => {
+      if (loadedData) {
+        console.log("Graph Data from main process:", loadedData);
+        for (let runData of loadedData) {
+          availableCameras.push(runData.camera);
+        }
+        setGraphData(loadedData);
+        setCameraOptions(renderCameraOptions());
+      }
+    });
+  }
+
+  function renderCameraOptions(): JSX.Element[] {
+    console.log("Rendering option for cameras:", availableCameras);
+    return availableCameras.map((cameraNumber) => (
+      <option key={cameraNumber} value={`camera${cameraNumber}`}>
+        {`Camera ${cameraNumber}`}
+      </option>
+    ));
+  }
+
+  if (graphData === null) {
+    loadGraphData();
+  }
 
   return (
     <div className="flex flex-col items-center">
@@ -42,14 +75,12 @@ export default function Dashboard({ onSortClick, onResultsClick }: DashboardProp
             onChange={(e) => setActiveCamera(e.target.value)}
             className="apple-select"
           >
-            <option value="camera1">Camera One</option>
-            <option value="camera2">Camera Two</option>
-            <option value="camera3">Camera Three</option>
+            {cameraOptions}
           </select>
         </div>
 
         <div className="apple-card h-[300px]">
-          <FrogChart cameraId={activeCamera} />
+          <FrogChart cameraId={activeCamera} graphData={graphData} />
         </div>
 
         <div className="flex justify-between text-[var(--apple-text-secondary)] mt-2">

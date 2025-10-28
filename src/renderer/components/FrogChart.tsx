@@ -1,6 +1,5 @@
 "use client";
 
-const { ipcRenderer } = window.require("electron");
 import { useEffect, useState } from "react";
 import {
   LineChart,
@@ -15,26 +14,25 @@ import {
 
 interface FrogChartProps {
   cameraId: string;
+  graphData: Array<GraphData> | null;
 }
 
-interface GraphData {
+export interface GraphData {
   runDate: string;
   frogs: number;
   camera: number;
 }
 
-export default function FrogChart({ cameraId }: FrogChartProps) {
+export default function FrogChart({ cameraId, graphData }: FrogChartProps) {
   const [data, setData] = useState<any[]>([]);
 
   // Generate different data based on camera ID
   useEffect(() => {
-    ipcRenderer.invoke("get-graph-data").then((graphData: Array<GraphData> | null) => {
-      if (graphData) {
+    if (graphData) {
         let filteredGraphData = graphData.filter(item => item.camera === Number(cameraId.replace("camera", "")));
         setData(filteredGraphData.map(item => ({ month: item.runDate.split("T")[0], frogs: item.frogs })));
         console.log("Graph Data from main process:", graphData);
       }
-    });
   }, [cameraId]);
 
   return (
