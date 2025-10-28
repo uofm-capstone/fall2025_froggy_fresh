@@ -23,9 +23,13 @@ export default function Dashboard({ onSortClick, onResultsClick }: DashboardProp
       if (loadedData) {
         console.log("Graph Data from main process:", loadedData);
         for (let runData of loadedData) {
-          availableCameras.push(runData.camera);
+          if (!availableCameras.includes(runData.camera)) {
+            availableCameras.push(runData.camera);
+          }
         }
         setGraphData(loadedData);
+        //Sort camera numbers
+        availableCameras.sort();
         setCameraOptions(renderCameraOptions());
       }
     });
