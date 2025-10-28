@@ -12,7 +12,7 @@ interface DashboardProps {
 
 
 export default function Dashboard({ onSortClick, onResultsClick }: DashboardProps) {
-  const [activeCamera, setActiveCamera] = useState<string>("camera1");
+  const [activeCamera, setActiveCamera] = useState<string>("");
   const [availableCameras] = useState<number[]>([]);
   const [cameraOptions, setCameraOptions] = useState<JSX.Element[]>();
   const [graphData, setGraphData] = useState<Array<GraphData> | null | undefined>(null);
@@ -79,6 +79,7 @@ export default function Dashboard({ onSortClick, onResultsClick }: DashboardProp
             onChange={(e) => setActiveCamera(e.target.value)}
             className="apple-select"
           >
+            <option key={null}>Select Camera</option>
             {cameraOptions}
           </select>
         </div>

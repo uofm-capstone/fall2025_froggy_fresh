@@ -14,7 +14,7 @@ import {
 
 interface FrogChartProps {
   cameraId: string;
-  graphData: Array<GraphData> | null;
+  graphData: Array<GraphData> | null | undefined;
 }
 
 export interface GraphData {
