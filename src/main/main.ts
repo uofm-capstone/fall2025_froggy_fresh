@@ -59,14 +59,15 @@ ipcMain.on("open-folder", (event: IpcMainEvent, path: string, showInFolder: bool
 function convertRunDataToCsv(runData: RunData): string {
   const headers = ["Override", "ImagePath", "Classification", "Confidence", "Camera"];
   const rows = runData.results.map(({ override, imagePath, classification, confidence, camera }) => {
-    return [
-      override ? "Y" : "N",
-      `"${imagePath}"`, // so paths with commas don't break csv
-      override ? "NA" : classification,
-      confidence,
-      camera
-    ].join(",");
-  });
+  return [
+    override ? "Y" : "N",
+    `"${imagePath}"`,
+    classification,
+    confidence,
+    camera
+  ].join(",");
+});
+
   return [headers.join(","), ...rows].join("\n");
 }
 
