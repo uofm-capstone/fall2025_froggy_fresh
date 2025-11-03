@@ -54,11 +54,11 @@ export default function Dashboard({ onSortClick, onResultsClick }: DashboardProp
 
       {/* Action buttons */}
       <div className="flex gap-6 mb-12">
-        <button
-          onClick={onSortClick}
-          className="apple-button-outline"
-        >
-          Sort Frogs
+        <button onClick={onSortClick} className="apple-button-outline">
+          Sort Frog Images
+          <div className="text-[12px] text-[var(--apple-subtle-text)]">
+            Select a folder and begin sorting
+          </div>
         </button>
 
         <button
