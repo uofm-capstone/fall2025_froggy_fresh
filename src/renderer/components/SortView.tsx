@@ -138,8 +138,9 @@ export default function SortView({ onBack, onResults, onSortComplete }: SortView
                 className="flex-1 rounded-xl border border-[var(--apple-border)] bg-[#f5f5f5] dark:bg-[#1c1c1e] px-4 py-2 text-[var(--apple-text)] focus:outline-none focus:ring-2 focus:ring-[var(--apple-accent)] focus:border-transparent transition-all duration-200"
                 placeholder="Select folder"
                 readOnly
+                title="Select the folder that contains your frog images"
               />
-              <button onClick={handleBrowse} className="apple-button-secondary">
+              <button onClick={handleBrowse} className="apple-button-secondary" title="Select the folder that contains your frog images" >
                 Browse
               </button>
             </div>
