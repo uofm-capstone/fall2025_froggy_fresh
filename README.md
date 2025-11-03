@@ -3,7 +3,7 @@
 ## Froggy Fresh Fall 2025 Documents
 * Timesheet: https://docs.google.com/spreadsheets/d/1xcMFReWcBJ__tyjXvqYqbAp0-dRgmOaRzxluAu3lHHk
 * Team Contract: https://docs.google.com/document/d/11bn6WYxDa5iVKj05U69uvbrIomSSs02lq8bIM02frT4/edit?tab=t.0
-* Demo Day Slideshow: https://docs.google.com/presentation/d/1cz3R0_1_6XCYNbiV0pAiOBF-sIOWKPiGXT9J_JHUbks/edit
+* Demo Day Slideshow: https://docs.google.com/presentation/d/1ZeRGRAGr21KQ9Qc0QHNxhq493hXJSRSLXxQdeEZm9ss/edit?usp=sharing
 * Notes: https://docs.google.com/document/d/1JARno9335g6qGYY5gelcrZA_0k6v0L0IzJhCMttzEik/edit?usp=sharing
 
 ### Sprint 2
@@ -19,6 +19,8 @@
 ### Sprint 3
 - [Nicole Clark Feedback for Zachery Nolan](https://github.com/user-attachments/files/23243182/S3.Nicole.Clark.Feedback.for.Zachery.Nolan.pdf)
 - [Zachery Nolan Feedback for Nicole Clark](https://docs.google.com/document/d/1I-WgkXGsWr2omHkeTHvN6DVa7LEkfJsgIYEq5M7S37s/edit?tab=t.0#heading=h.grn8qx4aadca)
+- [Kelly Nguyen feedback for Jacob Hensley](https://docs.google.com/document/d/1QiI3W7CdPuw4Mj2suZB9wj3TAOfxSwnTkl6VWPnRxZo/edit?usp=sharing)
+- [Jacob Hensley feedback for Kelly Nguyen](https://docs.google.com/document/d/1Hj4vPxVKOePWIvMWFn3eu5_JF61E8Lvt-aTsfcq5XtU/edit?usp=sharing) 
 ## Frog Capture AI Recognizer
 
 This project aims to develop an automated deep learning system that detects frogs in image captured from frog traps.
