@@ -20,7 +20,10 @@
 - [Nicole Clark Feedback for Zachery Nolan](https://github.com/user-attachments/files/23243182/S3.Nicole.Clark.Feedback.for.Zachery.Nolan.pdf)
 - [Zachery Nolan Feedback for Nicole Clark](https://docs.google.com/document/d/1I-WgkXGsWr2omHkeTHvN6DVa7LEkfJsgIYEq5M7S37s/edit?tab=t.0#heading=h.grn8qx4aadca)
 - [Kelly Nguyen feedback for Jacob Hensley](https://docs.google.com/document/d/1QiI3W7CdPuw4Mj2suZB9wj3TAOfxSwnTkl6VWPnRxZo/edit?usp=sharing)
-- [Jacob Hensley feedback for Kelly Nguyen](https://docs.google.com/document/d/1Hj4vPxVKOePWIvMWFn3eu5_JF61E8Lvt-aTsfcq5XtU/edit?usp=sharing) 
+- [Jacob Hensley feedback for Kelly Nguyen](https://docs.google.com/document/d/1Hj4vPxVKOePWIvMWFn3eu5_JF61E8Lvt-aTsfcq5XtU/edit?usp=sharing)
+- [Jacob Chaney feedback for Brian Collier](https://livememphis-my.sharepoint.com/:w:/g/personal/jschney1_memphis_edu/EXefHkyp7hdHmvDT1sYylBYB8TGjLA0VTb10Nvf0a-YILw?e=oYz22P)
+- [Brian Collier feedback for Jacob Chaney](https://livememphis-my.sharepoint.com/:w:/g/personal/jschney1_memphis_edu/EdaBMdzbENVPvqSAUMCd8asBQOy8p_13_2HC7yich5xxvQ?e=jxUAvu)
+
 ## Frog Capture AI Recognizer
 
 This project aims to develop an automated deep learning system that detects frogs in image captured from frog traps.
