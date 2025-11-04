@@ -43,10 +43,13 @@ app.whenReady().then(() => {
 // Handle the folder picker request
 ipcMain.handle("open-directory-dialog", async () => {
   const result = await dialog.showOpenDialog({
+    buttonLabel: "Open Folder", // changes the button text (“Open”)
+    defaultPath: os.homedir(),
     properties: ["openDirectory"],
   });
   return result.filePaths[0] || null; // Return folder path or null if canceled
 });
+
 
 ipcMain.on("open-folder", (event: IpcMainEvent, path: string, showInFolder: boolean) => {
   if (showInFolder) {
