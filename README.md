@@ -48,7 +48,7 @@ Results are stored in your Documents folder.
 6. On Linux and Mac, uncomment out the `tensorflow` line in the dependencies list in `./backend/pyproject.toml`
 7. run `uv sync --project ./backend` to create a `./backend/.venv` folder and install python dependencies
 8. On Windows, you need to install tensorflow manually. `cd` into `backend` and then run `uv pip install tensorflow` and then `cd` back out with `cd ..`
-9. run `npm run build` to compile `./src/main/main.ts` into `./electron/main.js` (also builds the static vite `.tsx` for packaging)
+9. run `npm run build` to compile `./src/main/main.ts` into `./electron/main.js` (also builds the static vite `.tsx` for packaging). **This must be done every time `main.ts` is modified.**
 10. to launch the application run `npm run dev`
 
 ### Building Electron application to binary
