@@ -29,7 +29,7 @@ export default function Dashboard({ onSortClick, onResultsClick }: DashboardProp
         }
         setGraphData(loadedData);
         //Sort camera numbers
-        availableCameras.sort();
+        availableCameras.sort((a, b) => a - b);
         setCameraOptions(renderCameraOptions());
       }
     });
