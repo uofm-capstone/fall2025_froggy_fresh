@@ -269,31 +269,37 @@ app.on("window-all-closed", () => {
 });
 
 ipcMain.handle("get-graph-data", async (event: IpcMainInvokeEvent): Promise<Array<GraphData> | null> => {
-  try {
     let graphData = new Array<GraphData>();
     let runResultPath = path.resolve(os.homedir(), "Documents", "Leapfrog", "runs");
     console.log(runResultPath)
-    for (let fileName of await fs.readdir(runResultPath)) {
-      console.log(fileName);
-      const rawData = await fs.readFile(path.join(runResultPath, fileName), "utf-8");
-      const data = JSON.parse(rawData);
-      if (isValidRunData(data) && data.results.length > 0 && typeof data.results[0].camera === "number") {
-        let graphableRunData = {
-          runDate: data.runDate,
-          frogs: data.frogs,
-          camera: data.results[0].camera
-        }
-        if (isValidGraphData(graphableRunData)) {
-          graphData.push(graphableRunData);
-        }
-        else {
-          console.error("Invalid GraphData structure:", graphableRunData);
+    try {
+      for (let fileName of await fs.readdir(runResultPath)) {
+        try {
+          console.log(fileName);  
+          const rawData = await fs.readFile(path.join(runResultPath, fileName), "utf-8");
+          const data = JSON.parse(rawData);
+          if (isValidRunData(data) && data.results.length > 0 && typeof data.results[0].camera === "number") {
+            let graphableRunData = {
+              runDate: data.runDate,
+              frogs: data.frogs,
+              camera: data.results[0].camera
+            }
+            if (isValidGraphData(graphableRunData)) {
+              graphData.push(graphableRunData);
+            }
+            else {
+              console.error("Invalid GraphData structure:", graphableRunData);
+            }
+          }
+        } catch (error) {
+          console.error("Error reading or parsing file:", error);
+          continue;
         }
       }
+      return graphData;
+    } catch (error) {
+      console.warn("Error reading runs directory:", error);
+      console.warn("If no run data has been generated yet, this is expected behavior and can be ignored.");
+      return null;
     }
-    return graphData;
-  } catch (error) {
-    console.error("Error reading or parsing file:", error);
-    return null;
-  }
 });
