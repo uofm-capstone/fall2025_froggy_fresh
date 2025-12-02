@@ -24,6 +24,9 @@
 - [Jacob Chaney feedback for Brian Collier](https://livememphis-my.sharepoint.com/:w:/g/personal/jschney1_memphis_edu/EXefHkyp7hdHmvDT1sYylBYB8TGjLA0VTb10Nvf0a-YILw?e=oYz22P)
 - [Brian Collier feedback for Jacob Chaney](https://livememphis-my.sharepoint.com/:w:/g/personal/jschney1_memphis_edu/EdaBMdzbENVPvqSAUMCd8asBQOy8p_13_2HC7yich5xxvQ?e=jxUAvu)
 
+### Sprint 4
+- [Kelly Nguyen feedback for George Cancino] (https://docs.google.com/document/d/1KZZsTXffkTO6yS7-NF7cxpd1A9EEYhZcq7ft3_7GvjE/edit?usp=sharing)
+- [George Cancino feedback for Kelly Nguyen] (https://docs.google.com/document/d/1bkG9wZ4uddsB0IAFeeaFyQ1G9R3KLFL7KS6m_A81Zi0/edit?usp=sharing)
 ## Frog Capture AI Recognizer
 
 This project aims to develop an automated deep learning system that detects frogs in image captured from frog traps.
