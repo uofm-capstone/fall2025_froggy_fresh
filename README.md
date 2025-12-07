@@ -27,6 +27,9 @@
 ### Sprint 4
 - [Kelly Nguyen feedback for George Cancino](https://docs.google.com/document/d/1KZZsTXffkTO6yS7-NF7cxpd1A9EEYhZcq7ft3_7GvjE/edit?usp=sharing)
 - [George Cancino feedback for Kelly Nguyen](https://docs.google.com/document/d/1bkG9wZ4uddsB0IAFeeaFyQ1G9R3KLFL7KS6m_A81Zi0/edit?usp=sharing)
+- [Kevin Gibson feedback for Raid Amer]([https://livememphis-my.sharepoint.com/:w:/g/personal/jschney1_memphis_edu/ETzQ3C1CORVGlHaeQ4FB6_EBiWv2h-S_3r4lL3d-GoyIbQ?e=JLbp0n](https://docs.google.com/document/d/11ZISBBx_p14VXRXc6ai2tNjku3f4zUTO5VDungTIZug/edit?tab=t.0)](https://docs.google.com/document/d/13lbJmJALG8K2isACJF83Hpx_uq1c79W1ZgMFqdLob-8/edit?usp=sharing))
+- [Raid Amer  feedback for Kevin Gibson]([https://livememphis-my.sharepoint.com/:w:/g/personal/jschney1_memphis_edu/ETzQ3C1CORVGlHaeQ4FB6_EBiWv2h-S_3r4lL3d-GoyIbQ?e=JLbp0n](https://docs.google.com/document/d/1nppUkO9kWzsMA7kJJoTIpuzbDwkwaLihvah_oZfCT0o/edit?tab=t.0)](https://docs.google.com/document/d/1bEpw8ho7MYZat8eOjNw36r_SnOf2TTUoiLh_vKDBc3w/edit?tab=t.0))
+
 ## Frog Capture AI Recognizer
 
 This project aims to develop an automated deep learning system that detects frogs in image captured from frog traps.
