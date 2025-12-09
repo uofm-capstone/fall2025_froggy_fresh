@@ -111,14 +111,19 @@ export default function ResultsView({ onBack }: { onBack: () => void }) {
     }
   };
 
-  useEffect(() => {
-    const fetchRunList = async () => {
-      ipcRenderer.invoke("list-runs").then((newRunList: RunResultsEntry[]) => {
-        setRunsList(newRunList);
-      });
-    };
-    fetchRunList();
-  }, []); // passing an empty array here means it only gets called once after initial render
+useEffect(() => {
+  const fetchRunList = async () => {
+    ipcRenderer.invoke("list-runs").then((newRunList: RunResultsEntry[]) => {
+      // Sort newest first
+      const sorted = [...newRunList].sort((a, b) =>
+        b.filePath.localeCompare(a.filePath)
+      );
+      setRunsList(sorted);
+    });
+  };
+  fetchRunList();
+}, []); // passing an empty array here means it only gets called once after initial render
+
 
   return (
     <div>
