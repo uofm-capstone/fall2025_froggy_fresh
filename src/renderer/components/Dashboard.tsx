@@ -1,7 +1,7 @@
 "use client";
 const { ipcRenderer } = window.require("electron");
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import FrogChart from "./FrogChart";
 import { GraphData } from "./FrogChart";
 
@@ -10,42 +10,38 @@ interface DashboardProps {
   onResultsClick: () => void;
 }
 
-
 export default function Dashboard({ onSortClick, onResultsClick }: DashboardProps) {
-  const [activeCamera, setActiveCamera] = useState<string>("");
-  const [availableCameras] = useState<number[]>([]);
-  const [cameraOptions, setCameraOptions] = useState<JSX.Element[]>();
+  const [availableCameras, setAvailableCameras] = useState<number[]>([]);
+  const [selectedCameras, setSelectedCameras] = useState<number[]>([]);
   const [graphData, setGraphData] = useState<Array<GraphData> | null | undefined>(null);
 
+  useEffect(() => {
+    loadGraphData();
+  }, []);
+
   async function loadGraphData() {
-    setGraphData(undefined); // Indicate loading state
+    setGraphData(undefined); 
     ipcRenderer.invoke("get-graph-data").then((loadedData: Array<GraphData> | null) => {
       if (loadedData) {
-        console.log("Graph Data from main process:", loadedData);
-        for (let runData of loadedData) {
-          if (!availableCameras.includes(runData.camera)) {
-            availableCameras.push(runData.camera);
-          }
-        }
+        const cams = Array.from(new Set(loadedData.map(r => r.camera))).sort((a, b) => a - b);
+        setAvailableCameras(cams);
         setGraphData(loadedData);
-        //Sort camera numbers
-        availableCameras.sort((a, b) => a - b);
-        setCameraOptions(renderCameraOptions());
+        // default select first camera (or all, if you prefer: setSelectedCameras(cams))
+        if (cams.length > 0) setSelectedCameras([cams[0]]);
+      } else {
+        setGraphData([]);
+        setAvailableCameras([]);
+        setSelectedCameras([]);
       }
     });
   }
 
-  function renderCameraOptions(): JSX.Element[] {
-    console.log("Rendering option for cameras:", availableCameras);
-    return availableCameras.map((cameraNumber) => (
-      <option key={cameraNumber} value={`camera${cameraNumber}`}>
-        {`Camera ${cameraNumber}`}
-      </option>
-    ));
-  }
-
-  if (graphData === null) {
-    loadGraphData();
+  function toggleCamera(cameraNumber: number) {
+    setSelectedCameras(prev =>
+      prev.includes(cameraNumber)
+        ? prev.filter(c => c !== cameraNumber)
+        : [...prev, cameraNumber].sort((a, b) => a - b)
+    );
   }
 
   return (
@@ -73,19 +69,31 @@ export default function Dashboard({ onSortClick, onResultsClick }: DashboardProp
       <div className="w-full max-w-4xl">
         <h2 className="text-2xl font-semibold text-center mb-6 text-[var(--apple-text)]">Frogs Over Time</h2>
 
-        <div className="mb-4">
-          <select
-            value={activeCamera}
-            onChange={(e) => setActiveCamera(e.target.value)}
-            className="apple-select"
-          >
-            <option key={null}>Select Camera</option>
-            {cameraOptions}
-          </select>
+        {/* Multi-camera selection (checkboxes) */}
+        <div className="mb-4 apple-card p-4">
+          <div className="text-sm text-[var(--apple-text)] mb-2">
+            {graphData === undefined ? "Loading cameras..." : "Select one or more cameras:"}
+          </div>
+          <div className="flex flex-wrap gap-3">
+            {availableCameras.map((cam) => (
+              <label key={cam} className="inline-flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="accent-[var(--apple-accent)]"
+                  checked={selectedCameras.includes(cam)}
+                  onChange={() => toggleCamera(cam)}
+                />
+                <span className="text-[var(--apple-text)]">Camera {cam}</span>
+              </label>
+            ))}
+            {availableCameras.length === 0 && graphData !== undefined && (
+              <span className="text-[var(--apple-text-secondary)]">No cameras found</span>
+            )}
+          </div>
         </div>
 
         <div className="apple-card h-[300px]">
-          <FrogChart cameraId={activeCamera} graphData={graphData} />
+          <FrogChart cameraIds={selectedCameras} graphData={graphData} />
         </div>
 
         <div className="flex justify-between text-[var(--apple-text-secondary)] mt-2">
